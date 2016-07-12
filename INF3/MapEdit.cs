@@ -1,8 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
-using System.Text;
+using System.Reflection;
 using InfinityScript;
 
 namespace INF3
@@ -15,9 +14,11 @@ namespace INF3
         private static string _currentfile;
 
         public static bool HasPower = false;
-        public static List<BoxEntity> boxents = new List<BoxEntity>();
+        //public static List<BoxEntity> boxents = new List<BoxEntity>();
+        public static List<IUsable> usables = new List<IUsable>();
         public static List<PerkColaType> spawnedPerkColas = new List<PerkColaType>();
         public static List<Door> doors = new List<Door>();
+
 
         public MapEdit()
         {
@@ -30,6 +31,13 @@ namespace INF3
             {
                 player.Call("notifyonplayercommand", "triggeruse", "+activate");
                 player.OnNotify("triggeruse", ent => UsableThink(ent));
+
+                player.OnInterval(100, e =>
+                {
+                    TurretFireThink(player);
+                    return true;
+                });
+
                 UsableHud(player);
 
                 player.SetField("attackeddoor", 0);
@@ -58,11 +66,34 @@ namespace INF3
 
         private void UsableThink(Entity player)
         {
-            foreach (var item in boxents)
+            if (player.IsAlive)
             {
-                if (player.IsAlive && item.Origin.DistanceTo(player.Origin) <= item.Range)
+                foreach (var item in usables)
                 {
-                    item.Usable(player);
+                    if (player.IsAlive && item.Origin.DistanceTo(player.Origin) <= item.Range)
+                    {
+                        if (item.GetType().BaseType == typeof(BoxEntity))
+                        {
+                            item.DoUsableFunc(player);
+                        }
+                    }
+                }
+            }
+        }
+
+        private void TurretFireThink(Entity player)
+        {
+            if (player.IsAlive && player.Call<int>("isusingturret") == 1)
+            {
+                foreach (var item in usables)
+                {
+                    if (player.Origin.DistanceTo(item.Origin) < 50 && player.Call<int>("attackbuttonpressed") == 1)
+                    {
+                        if (item.GetType().BaseType == typeof(Turret))
+                        {
+                            item.DoUsableFunc(player);
+                        }
+                    }
                 }
             }
         }
@@ -77,45 +108,40 @@ namespace INF3
 
             player.OnInterval(100, e =>
             {
-                try
+                bool flag = false;
+                bool flag2 = false;
+                foreach (var item in usables)
                 {
-                    bool flag = false;
-                    bool flag2 = false;
-                    foreach (var item in boxents)
+                    if (player.Origin.DistanceTo(item.Origin) >= item.Range)
                     {
-                        if (player.Origin.DistanceTo(item.Origin) >= item.Range)
+                        continue;
+                    }
+                    message.SetText(item.GetUsableText(player));
+                    if (item.GetType() == typeof(PerkColaMachine))
+                    {
+                        var ent = item as PerkColaMachine;
+                        if (ent.Type == BoxType.PerkColaMachine)
                         {
-                            continue;
-                        }
-                        message.SetText(item.UsableText(player));
-                        if (item.Type == BoxType.PerkColaMachine)
-                        {
-                            var type = ((PerkColaMachine)item).PerkCola;
+                            var type = ent.PerkCola;
                             perk.SetShader(type.Icon, 15, 15);
-                            perk.X = item.Origin.X;
-                            perk.Y = item.Origin.Y;
-                            perk.Z = item.Origin.Z + 50f;
+                            perk.X = ent.Origin.X;
+                            perk.Y = ent.Origin.Y;
+                            perk.Z = ent.Origin.Z + 50f;
                             perk.Call("setwaypoint", 1, 1);
                             perk.Alpha = 0.7f;
                             flag2 = true;
                         }
-                        flag = true;
                     }
-                    if (!flag)
-                    {
-                        message.SetText("");
-                    }
-                    if (!flag2)
-                    {
-                        perk.Alpha = 0f;
-                    }
+                    flag = true;
                 }
-                catch (Exception)
+                if (!flag)
                 {
                     message.SetText("");
-                    perk.Alpha = 0;
                 }
-
+                if (!flag2)
+                {
+                    perk.Alpha = 0f;
+                }
                 return player.IsPlayer;
             });
         }
@@ -346,8 +372,31 @@ namespace INF3
                 default:
                     throw new Exception("Unknown BoxEntity");
             }
+            usables.Add(ent);
+        }
 
-            boxents.Add(ent);
+        private void SpawnTurret(TurretType type, Vector3 origin, Vector3 angle)
+        {
+            Turret ent;
+
+            switch (type)
+            {
+                case TurretType.Turret:
+                    ent = new OnGroundTurret(origin, angle);
+                    break;
+                case TurretType.Sentry:
+                    ent = new Sentry(origin, angle);
+                    break;
+                case TurretType.GL:
+                    ent = new GL(origin, angle);
+                    break;
+                case TurretType.SAM:
+                    ent = new SAM(origin, angle);
+                    break;
+                default:
+                    throw new Exception("Unknown Turret");
+            }
+            usables.Add(ent);
         }
 
         private void LoadMapEdit()
@@ -437,12 +486,32 @@ namespace INF3
                                     }
                                     continue;
                                 case "turret":
+                                    strArray = strArray[1].Split(new char[] { ';' });
+                                    if (strArray.Length >= 2)
+                                    {
+                                        SpawnTurret(TurretType.Turret, ParseVector3(strArray[0]), new Vector3(0, ParseVector3(strArray[1]).Y, 0));
+                                    }
                                     continue;
                                 case "sentry":
+                                    strArray = strArray[1].Split(new char[] { ';' });
+                                    if (strArray.Length >= 2)
+                                    {
+                                        SpawnTurret(TurretType.Sentry, ParseVector3(strArray[0]), new Vector3(0, ParseVector3(strArray[1]).Y, 0));
+                                    }
                                     continue;
                                 case "gl":
+                                    strArray = strArray[1].Split(new char[] { ';' });
+                                    if (strArray.Length >= 2)
+                                    {
+                                        SpawnTurret(TurretType.GL, ParseVector3(strArray[0]), new Vector3(0, ParseVector3(strArray[1]).Y, 0));
+                                    }
                                     continue;
                                 case "sam":
+                                    strArray = strArray[1].Split(new char[] { ';' });
+                                    if (strArray.Length >= 2)
+                                    {
+                                        SpawnTurret(TurretType.SAM, ParseVector3(strArray[0]), new Vector3(0, ParseVector3(strArray[1]).Y, 0));
+                                    }
                                     continue;
                                 case "zipline":
                                     strArray = strArray[1].Split(new char[] { ';' });

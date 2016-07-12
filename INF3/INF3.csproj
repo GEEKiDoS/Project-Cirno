@@ -48,6 +48,7 @@
     <Compile Include="INF3Main.cs" />
     <Compile Include="BoxFunction.cs" />
     <Compile Include="IRandom.cs" />
+    <Compile Include="IUsable.cs" />
     <Compile Include="PowerUp.cs" />
     <Compile Include="Effects.cs" />
     <Compile Include="JetPack.cs" />

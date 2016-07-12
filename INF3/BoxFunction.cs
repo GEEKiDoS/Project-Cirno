@@ -22,15 +22,16 @@ namespace INF3
         RandomPerkCola,
     }
 
-    public abstract class BoxEntity : IDisposable
+    public abstract class BoxEntity : IUsable, IDisposable
     {
         private bool disposed = false;
 
         private bool isObjective = false;
         private int objectiveId = -1;
 
-        protected delegate string TriggerString(Entity player);
-        protected delegate void TriggerUse(Entity player);
+        public event Func<Entity, string> UsableText;
+        public event Action<Entity> UsableThink;
+
 
         public Entity Entity { get; private set; }
         public Vector3 Origin
@@ -61,8 +62,7 @@ namespace INF3
         }
         public int Range { get; protected set; }
         public int Cost { get; protected set; }
-        protected TriggerString OnTriggerString { get; set; }
-        protected TriggerUse OnTriggerUse { get; set; }
+
         public BoxEntity(BoxType type, Vector3 origin, Vector3 angle, int range)
         {
             Type = type;
@@ -95,14 +95,14 @@ namespace INF3
         }
         #endregion
 
-        public string UsableText(Entity player)
+        public string GetUsableText(Entity player)
         {
-            return (string)OnTriggerString.DynamicInvoke(player);
+            return UsableText(player);
         }
 
-        public void Usable(Entity player)
+        public void DoUsableFunc(Entity player)
         {
-            OnTriggerUse.DynamicInvoke(player);
+            UsableThink(player);
         }
 
         public void Dispose()
@@ -179,7 +179,7 @@ namespace INF3
 
             MapEdit.doors.Add(this);
 
-            OnTriggerString += player =>
+            UsableText += player =>
             {
                 if (player.GetTeam() == "allies")
                 {
@@ -208,7 +208,7 @@ namespace INF3
                 return "";
             };
 
-            OnTriggerUse += (player) =>
+            UsableThink += player =>
             {
                 if (!player.IsAlive) return;
                 if (HP > 0)
@@ -325,7 +325,7 @@ namespace INF3
             Height = height;
             Cost = cost;
 
-            OnTriggerString += player =>
+            UsableText += player =>
             {
                 if (player.GetTeam() == "allies")
                 {
@@ -337,7 +337,7 @@ namespace INF3
                 return "";
             };
 
-            OnTriggerUse += player =>
+            UsableThink += player =>
             {
                 if (!player.IsAlive) return;
                 if (IsClose && player.GetTeam() == "allies")
@@ -376,7 +376,7 @@ namespace INF3
             Icon = "hudicon_neutral";
             ObjectiveId = Hud.CreateObjective(Origin, Icon, "allies");
 
-            OnTriggerString += player =>
+            UsableText += player =>
             {
                 if (!IsUsing)
                 {
@@ -385,7 +385,7 @@ namespace INF3
                 return "";
             };
 
-            OnTriggerUse += player =>
+            UsableThink += player =>
             {
                 if (!player.IsAlive) return;
                 if (!IsUsing)
@@ -433,7 +433,7 @@ namespace INF3
             ObjectiveId = Hud.CreateObjective(Origin, Icon, "allies");
             Cost = 500;
 
-            OnTriggerString += player =>
+            UsableText += player =>
             {
                 if (player.GetTeam() == "allies")
                 {
@@ -453,7 +453,7 @@ namespace INF3
                 return "";
             };
 
-            OnTriggerUse += player =>
+            UsableThink += player =>
             {
                 if (!player.IsAlive) return;
                 if (Utility.GetDvar<int>("scr_aiz_power") != 1) return;
@@ -515,7 +515,7 @@ namespace INF3
             Shader = Hud.CreateShader(origin, Icon);
             ObjectiveId = Hud.CreateObjective(origin, Icon);
 
-            OnTriggerString += player =>
+            UsableText += player =>
             {
                 return "Press ^3[{+gostand}] ^7to boost jump.";
             };
@@ -560,7 +560,7 @@ namespace INF3
 
             Utility.SetDvar("scr_aiz_power", 0);
 
-            OnTriggerString += player =>
+            UsableText += player =>
             {
                 if (player.GetTeam() == "allies")
                 {
@@ -572,7 +572,7 @@ namespace INF3
                 return "";
             };
 
-            OnTriggerUse += player =>
+            UsableThink += player =>
             {
                 if (!player.IsAlive) return;
                 if (Utility.GetDvar<int>("scr_aiz_power") != 0) return;
@@ -632,7 +632,7 @@ namespace INF3
             ObjectiveId = Hud.CreateObjective(Origin, Icon, "allies");
             Cost = 100;
 
-            OnTriggerString += player =>
+            UsableText += player =>
             {
                 if (player.GetTeam() == "allies")
                 {
@@ -645,7 +645,7 @@ namespace INF3
                 return "";
             };
 
-            OnTriggerUse += player =>
+            UsableThink += player =>
             {
                 if (!player.IsAlive) return;
                 if (player.GetTeam() == "allies")
@@ -708,7 +708,7 @@ namespace INF3
             ObjectiveId = Hud.CreateObjective(Origin, Icon, "allies");
             Cost = 500;
 
-            OnTriggerString += player =>
+            UsableText += player =>
             {
                 if (!IsUsing)
                 {
@@ -724,7 +724,7 @@ namespace INF3
                 return "";
             };
 
-            OnTriggerUse += player =>
+            UsableThink += player =>
             {
                 if (IsUsing) return;
                 if (!player.IsAlive) return;
@@ -1093,7 +1093,7 @@ namespace INF3
             ObjectiveId = Hud.CreateObjective(Origin, Icon, "allies");
             Cost = 10;
 
-            OnTriggerString += player =>
+            UsableText += player =>
             {
                 if (player.GetTeam() == "allies")
                 {
@@ -1102,7 +1102,7 @@ namespace INF3
                 return "";
             };
 
-            OnTriggerUse += player =>
+            UsableThink += player =>
             {
                 if (!player.IsAlive) return;
                 if (player.GetTeam() == "allies")
@@ -1131,7 +1131,7 @@ namespace INF3
             ObjectiveId = Hud.CreateObjective(Origin, Icon, "allies");
             Cost = 5;
 
-            OnTriggerString += player =>
+            UsableText += player =>
             {
                 if (player.GetTeam() == "allies")
                 {
@@ -1140,7 +1140,7 @@ namespace INF3
                 return "";
             };
 
-            OnTriggerUse += player =>
+            UsableThink += player =>
             {
                 if (!player.IsAlive) return;
                 if (player.GetTeam() == "allies")
@@ -1179,7 +1179,7 @@ namespace INF3
             ObjectiveId = Hud.CreateObjective(Origin, Icon, "allies");
             Cost = PerkCola.Pay;
 
-            OnTriggerString += player =>
+            UsableText += player =>
             {
                 if (player.GetTeam() == "allies")
                 {
@@ -1192,7 +1192,7 @@ namespace INF3
                 return "";
             };
 
-            OnTriggerUse += player =>
+            UsableThink += player =>
             {
                 if (!player.IsAlive) return;
                 if (Utility.GetDvar<int>("scr_aiz_power") != 1) return;
@@ -1248,7 +1248,7 @@ namespace INF3
             ObjectiveId = Hud.CreateObjective(Origin, Icon, "allies");
             Cost = 10;
 
-            OnTriggerString += player =>
+            UsableText += player =>
             {
                 if (player.GetTeam() == "allies")
                 {
@@ -1261,7 +1261,7 @@ namespace INF3
                 return "";
             };
 
-            OnTriggerUse += player =>
+            UsableThink += player =>
             {
                 if (!player.IsAlive) return;
                 if (Utility.GetDvar<int>("scr_aiz_power") != 1) return;

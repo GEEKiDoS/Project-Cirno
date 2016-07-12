@@ -222,258 +222,6 @@ namespace INF3
             }
         }
 
-        public Action<Entity> OnRolled
-        {
-            get
-            {
-                switch (Type)
-                {
-                    case RollType.Nothing:
-                        return new Action<Entity>(player =>
-                        {
-                        });
-                    case RollType.FlagZombie:
-                        return new Action<Entity>(player =>
-                        {
-                            player.SetField("rtd_flag", 1);
-                            player.Call("attach", GetCarryFlag(), "j_spine4", 1);
-                        });
-                    case RollType.StaminUp:
-                        return new Action<Entity>(player =>
-                        {
-                            player.SetField("speed", 1.5f);
-                        });
-                    case RollType.OneHitKill:
-                        return new Action<Entity>(player =>
-                        {
-                            player.SetField("maxhealth", 1);
-                            player.Health = 1;
-                        });
-                    case RollType.Juggernaut:
-                        return new Action<Entity>(player =>
-                        {
-                            player.Call("setmodel", "mp_fullbody_opforce_juggernaut");
-                            player.Call("setviewmodel", "viewhands_juggernaut_opforce");
-                            player.SetField("maxhealth", player.GetField<int>("maxhealth") * 3);
-                            player.Health *= 3;
-                        });
-                    case RollType.SMAW:
-                        return new Action<Entity>(player =>
-                        {
-                            player.TakeWeapon(player.CurrentWeapon);
-                            player.GiveWeapon("iw5_smaw_mp");
-                            player.Call("setweaponammoclip", "iw5_smaw_mp", 1);
-                            player.Call("setweaponammostock", "iw5_smaw_mp", 0);
-                            player.AfterDelay(300, e => player.SwitchToWeaponImmediate("iw5_smaw_mp"));
-                        });
-                    case RollType.RPG:
-                        return new Action<Entity>(player =>
-                        {
-                            player.TakeWeapon(player.CurrentWeapon);
-                            player.GiveWeapon("rpg_mp");
-                            player.Call("setweaponammoclip", "rpg_mp", 1);
-                            player.Call("setweaponammostock", "rpg_mp", 0);
-                            player.AfterDelay(300, e => player.SwitchToWeaponImmediate("rpg_mp"));
-                        });
-                    case RollType.Stinger:
-                        return new Action<Entity>(player =>
-                        {
-                            player.TakeWeapon(player.CurrentWeapon);
-                            player.GiveWeapon("stinger_mp");
-                            player.AfterDelay(300, e => player.SwitchToWeaponImmediate("stinger_mp"));
-                        });
-                    case RollType.AA12:
-                        return new Action<Entity>(player =>
-                        {
-                            player.TakeWeapon(player.CurrentWeapon);
-                            player.GiveWeapon("iw5_aa12_mp");
-                            player.Call("setweaponammostock", "iw5_aa12_mp", 0);
-                            player.AfterDelay(300, e => player.SwitchToWeaponImmediate("iw5_aa12_mp"));
-                        });
-                    case RollType.Spas:
-                        return new Action<Entity>(player =>
-                        {
-                            player.TakeWeapon(player.CurrentWeapon);
-                            player.GiveWeapon("iw5_spas12_mp");
-                            player.Call("setweaponammostock", "iw5_spas12_mp", 0);
-                            player.AfterDelay(300, e => player.SwitchToWeaponImmediate("iw5_spas12_mp"));
-                        });
-                    case RollType.Turtle:
-                        return new Action<Entity>(player =>
-                        {
-                            player.SetField("speed", 0.7f);
-                        });
-                    case RollType.Javelin:
-                        return new Action<Entity>(player =>
-                        {
-                            player.TakeWeapon(player.CurrentWeapon);
-                            player.GiveWeapon("javelin_mp");
-                            player.Call("setweaponammostock", "javelin_mp", 0);
-                            player.AfterDelay(300, e => player.SwitchToWeaponImmediate("javelin_mp"));
-                        });
-                    case RollType.Riotshield:
-                        return new Action<Entity>(player =>
-                        {
-                            player.TakeWeapon(player.CurrentWeapon);
-                            player.GiveWeapon("riotshield_mp");
-                            player.AfterDelay(300, e => player.SwitchToWeaponImmediate("riotshield_mp"));
-                            player.Call("attachshieldmodel", "weapon_riot_shield_mp", "tag_shield_back");
-                        });
-                    case RollType.KingOfJuggernaut:
-                        return new Action<Entity>(player =>
-                        {
-                            player.SetField("rtd_king", 1);
-                            player.Call("attach", GetCarryFlag(), "j_spine4", 1);
-                            player.Call("setmodel", "mp_fullbody_opforce_juggernaut");
-                            player.Call("setviewmodel", "viewhands_juggernaut_opforce");
-                            player.SetField("maxhealth", player.GetField<int>("maxhealth") * 10);
-                            player.Health *= 10;
-                        });
-                    case RollType.DesertEagle:
-                        return new Action<Entity>(player =>
-                        {
-                            player.TakeWeapon(player.CurrentWeapon);
-                            player.GiveWeapon("iw5_deserteagle_mp");
-                            player.Call("setweaponammostock", "iw5_deserteagle_mp", 0);
-                            player.AfterDelay(300, e => player.SwitchToWeaponImmediate("iw5_deserteagle_mp"));
-                        });
-                    case RollType.ThrowingKnife:
-                        return new Action<Entity>(player =>
-                        {
-                            player.GiveWeapon("throwingknife_mp");
-                            player.AfterDelay(300, e => player.SwitchToWeaponImmediate("throwingknife_mp"));
-                        });
-                    case RollType.M320:
-                        return new Action<Entity>(player =>
-                        {
-                            player.TakeWeapon(player.CurrentWeapon);
-                            player.GiveWeapon("m320_mp");
-                            player.Call("setweaponammostock", "m320_mp", 0);
-                            player.AfterDelay(300, e => player.SwitchToWeaponImmediate("m320_mp"));
-                        });
-                    case RollType.XM25:
-                        return new Action<Entity>(player =>
-                        {
-                            player.TakeWeapon(player.CurrentWeapon);
-                            player.GiveWeapon("xm25_mp");
-                            player.Call("setweaponammostock", "xm25_mp", 0);
-                            player.AfterDelay(300, e => player.SwitchToWeaponImmediate("xm25_mp"));
-                        });
-                    case RollType.MK14:
-                        return new Action<Entity>(player =>
-                        {
-                            player.TakeWeapon(player.CurrentWeapon);
-                            player.GiveWeapon("iw5_mk14_mp");
-                            player.Call("setweaponammoclip", "iw5_mk14_mp", 1);
-                            player.Call("setweaponammostock", "iw5_mk14_mp", 0);
-                            player.AfterDelay(300, e => player.SwitchToWeaponImmediate("iw5_mk14_mp"));
-                        });
-                    case RollType.SVD:
-                        return new Action<Entity>(player =>
-                        {
-                            player.TakeWeapon(player.CurrentWeapon);
-                            player.GiveWeapon(Utilities.BuildWeaponName("iw5_dragunov", "none", "none", 0, 0));
-                            player.Call("setweaponammoclip", Utilities.BuildWeaponName("iw5_dragunov", "none", "none", 0, 0), 1);
-                            player.Call("setweaponammostock", Utilities.BuildWeaponName("iw5_dragunov", "none", "none", 0, 0), 0);
-                            player.AfterDelay(300, e => player.SwitchToWeaponImmediate(Utilities.BuildWeaponName("iw5_dragunov", "none", "none", 0, 0)));
-                        });
-                    case RollType.ISIS:
-                        return new Action<Entity>(player =>
-                        {
-                            player.SetField("rtd_isis", 1);
-                            player.TakeWeapon(player.CurrentWeapon);
-                            player.GiveWeapon("c4death_mp");
-                            player.AfterDelay(300, e => player.SwitchToWeaponImmediate("c4death_mp"));
-                        });
-                    case RollType.ISISJuggernaut:
-                        return new Action<Entity>(player =>
-                        {
-                            player.SetField("rtd_isis", 1);
-                            player.TakeWeapon(player.CurrentWeapon);
-                            player.GiveWeapon("c4death_mp");
-                            player.AfterDelay(300, e => player.SwitchToWeaponImmediate("c4death_mp"));
-                            player.Call("setmodel", "mp_fullbody_opforce_juggernaut");
-                            player.Call("setviewmodel", "viewhands_juggernaut_opforce");
-                            player.SetField("maxhealth", player.GetField<int>("maxhealth") * 3);
-                            player.Health *= 3;
-                        });
-                    case RollType.ZombieIncantation:
-                        return new Action<Entity>(player =>
-                        {
-                            player.SetField("zombie_incantation", 1);
-                        });
-                    case RollType.Tombstone:
-                        return new Action<Entity>(player =>
-                        {
-                            player.SetField("rtd_tombstone", 1);
-                        });
-                    case RollType.Tank:
-                        return new Action<Entity>(player =>
-                        {
-                            player.Call("setmodel", "mp_fullbody_opforce_juggernaut");
-                            player.Call("setviewmodel", "viewhands_juggernaut_opforce");
-                            player.SetField("maxhealth", player.GetField<int>("maxhealth") * 3);
-                            player.Health *= 3;
-                            player.TakeWeapon(player.CurrentWeapon);
-                            player.GiveWeapon("riotshield_mp");
-                            player.AfterDelay(300, e => player.SwitchToWeaponImmediate("riotshield_mp"));
-                            player.Call("attachshieldmodel", "weapon_riot_shield_mp", "tag_shield_back");
-                        });
-                    case RollType.Boomer:
-                        return new Action<Entity>(player =>
-                        {
-                            player.SetField("rtd_boomer", 1);
-                            Utility.SetZombieSniperModel(player);
-                        });
-                    case RollType.Spider:
-                        return new Action<Entity>(player =>
-                        {
-                            player.SetField("rtd_spider", 1);
-                            Utility.SetZombieSniperModel(player);
-                        });
-                    case RollType.JetPack:
-                        return new Action<Entity>(player =>
-                        {
-                            player.SetField("rtd_exo", 1);
-                        });
-                    case RollType.JetPackJuggernaut:
-                        return new Action<Entity>(player =>
-                        {
-                            player.SetField("rtd_exo", 1);
-                            player.Call("setmodel", "mp_fullbody_opforce_juggernaut");
-                            player.Call("setviewmodel", "viewhands_juggernaut_opforce");
-                            player.SetField("maxhealth", player.GetField<int>("maxhealth") * 3);
-                            player.Health *= 3;
-                        });
-                    case RollType.JetPackISISZombie:
-                        return new Action<Entity>(player =>
-                        {
-                            player.SetField("rtd_exo", 1);
-                            player.SetField("rtd_isis", 1);
-                            player.TakeWeapon(player.CurrentWeapon);
-                            player.GiveWeapon("c4death_mp");
-                            player.AfterDelay(300, e => player.SwitchToWeaponImmediate("c4death_mp"));
-                        });
-                    case RollType.DiscoZombie:
-                        return new Action<Entity>(player =>
-                        {
-                            if (ZombieRollTheDice.hasDiscoZombie)
-                            {
-                                OnRolled(player);
-                                return;
-                            }
-                            player.SetField("rtd_disco", 1);
-                            ZombieRollTheDice.hasDiscoZombie = true;
-                            ZombieRollTheDice.curretDiscoZombie = player;
-                            player.SetField("maxhealth", player.GetField<int>("maxhealth") * 2);
-                            player.Health *= 2;
-                        });
-                    default:
-                        return null;
-                }
-            }
-        }
-
         public string FullName
         {
             get
@@ -545,6 +293,187 @@ namespace INF3
                     default:
                         return "";
                 }
+            }
+        }
+
+        public void DoRolled(Entity player)
+        {
+            switch (Type)
+            {
+                case RollType.Nothing:
+                    break;
+                case RollType.FlagZombie:
+                    player.SetField("rtd_flag", 1);
+                    player.Call("attach", GetCarryFlag(), "j_spine4", 1);
+                    break;
+                case RollType.StaminUp:
+                    player.SetField("speed", 1.5f);
+                    break;
+                case RollType.OneHitKill:
+                    player.SetField("maxhealth", 1);
+                    player.Health = 1;
+                    break;
+                case RollType.Juggernaut:
+                    player.Call("setmodel", "mp_fullbody_opforce_juggernaut");
+                    player.Call("setviewmodel", "viewhands_juggernaut_opforce");
+                    player.SetField("maxhealth", player.GetField<int>("maxhealth") * 3);
+                    player.Health *= 3;
+                    break;
+                case RollType.SMAW:
+                    player.TakeWeapon(player.CurrentWeapon);
+                    player.GiveWeapon("iw5_smaw_mp");
+                    player.Call("setweaponammoclip", "iw5_smaw_mp", 1);
+                    player.Call("setweaponammostock", "iw5_smaw_mp", 0);
+                    player.AfterDelay(300, e => player.SwitchToWeaponImmediate("iw5_smaw_mp"));
+                    break;
+                case RollType.RPG:
+                    player.TakeWeapon(player.CurrentWeapon);
+                    player.GiveWeapon("rpg_mp");
+                    player.Call("setweaponammoclip", "rpg_mp", 1);
+                    player.Call("setweaponammostock", "rpg_mp", 0);
+                    player.AfterDelay(300, e => player.SwitchToWeaponImmediate("rpg_mp"));
+                    break;
+                case RollType.Stinger:
+                    player.TakeWeapon(player.CurrentWeapon);
+                    player.GiveWeapon("stinger_mp");
+                    player.AfterDelay(300, e => player.SwitchToWeaponImmediate("stinger_mp"));
+                    break;
+                case RollType.AA12:
+                    player.TakeWeapon(player.CurrentWeapon);
+                    player.GiveWeapon("iw5_aa12_mp");
+                    player.Call("setweaponammostock", "iw5_aa12_mp", 0);
+                    player.AfterDelay(300, e => player.SwitchToWeaponImmediate("iw5_aa12_mp"));
+                    break;
+                case RollType.Spas:
+                    player.TakeWeapon(player.CurrentWeapon);
+                    player.GiveWeapon("iw5_spas12_mp");
+                    player.Call("setweaponammostock", "iw5_spas12_mp", 0);
+                    player.AfterDelay(300, e => player.SwitchToWeaponImmediate("iw5_spas12_mp"));
+                    break;
+                case RollType.Turtle:
+                    player.SetField("speed", 0.7f);
+                    break;
+                case RollType.Javelin:
+                    break;
+                case RollType.Riotshield:
+                    player.TakeWeapon(player.CurrentWeapon);
+                    player.GiveWeapon("riotshield_mp");
+                    player.AfterDelay(300, e => player.SwitchToWeaponImmediate("riotshield_mp"));
+                    player.Call("attachshieldmodel", "weapon_riot_shield_mp", "tag_shield_back");
+                    break;
+                case RollType.KingOfJuggernaut:
+                    player.SetField("rtd_king", 1);
+                    player.Call("attach", GetCarryFlag(), "j_spine4", 1);
+                    player.Call("setmodel", "mp_fullbody_opforce_juggernaut");
+                    player.Call("setviewmodel", "viewhands_juggernaut_opforce");
+                    player.SetField("maxhealth", player.GetField<int>("maxhealth") * 8);
+                    player.Health *= 8;
+                    break;
+                case RollType.DesertEagle:
+                    player.TakeWeapon(player.CurrentWeapon);
+                    player.GiveWeapon("iw5_deserteagle_mp");
+                    player.Call("setweaponammostock", "iw5_deserteagle_mp", 0);
+                    player.AfterDelay(300, e => player.SwitchToWeaponImmediate("iw5_deserteagle_mp"));
+                    break;
+                case RollType.ThrowingKnife:
+                    player.GiveWeapon("throwingknife_mp");
+                    player.AfterDelay(300, e => player.SwitchToWeaponImmediate("throwingknife_mp"));
+                    break;
+                case RollType.M320:
+                    player.TakeWeapon(player.CurrentWeapon);
+                    player.GiveWeapon("m320_mp");
+                    player.Call("setweaponammostock", "m320_mp", 0);
+                    player.AfterDelay(300, e => player.SwitchToWeaponImmediate("m320_mp"));
+                    break;
+                case RollType.XM25:
+                    player.TakeWeapon(player.CurrentWeapon);
+                    player.GiveWeapon("xm25_mp");
+                    player.Call("setweaponammostock", "xm25_mp", 0);
+                    player.AfterDelay(300, e => player.SwitchToWeaponImmediate("xm25_mp"));
+                    break;
+                case RollType.MK14:
+                    player.TakeWeapon(player.CurrentWeapon);
+                    player.GiveWeapon("iw5_mk14_mp");
+                    player.Call("setweaponammoclip", "iw5_mk14_mp", 1);
+                    player.Call("setweaponammostock", "iw5_mk14_mp", 0);
+                    player.AfterDelay(300, e => player.SwitchToWeaponImmediate("iw5_mk14_mp"));
+                    break;
+                case RollType.SVD:
+                    player.TakeWeapon(player.CurrentWeapon);
+                    player.GiveWeapon(Utilities.BuildWeaponName("iw5_dragunov", "none", "none", 0, 0));
+                    player.Call("setweaponammoclip", Utilities.BuildWeaponName("iw5_dragunov", "none", "none", 0, 0), 1);
+                    player.Call("setweaponammostock", Utilities.BuildWeaponName("iw5_dragunov", "none", "none", 0, 0), 0);
+                    player.AfterDelay(300, e => player.SwitchToWeaponImmediate(Utilities.BuildWeaponName("iw5_dragunov", "none", "none", 0, 0)));
+                    break;
+                case RollType.ISIS:
+                    player.SetField("rtd_isis", 1);
+                    player.TakeWeapon(player.CurrentWeapon);
+                    player.GiveWeapon("c4death_mp");
+                    player.AfterDelay(300, e => player.SwitchToWeaponImmediate("c4death_mp"));
+                    break;
+                case RollType.ISISJuggernaut:
+                    player.SetField("rtd_isis", 1);
+                    player.TakeWeapon(player.CurrentWeapon);
+                    player.GiveWeapon("c4death_mp");
+                    player.AfterDelay(300, e => player.SwitchToWeaponImmediate("c4death_mp"));
+                    player.Call("setmodel", "mp_fullbody_opforce_juggernaut");
+                    player.Call("setviewmodel", "viewhands_juggernaut_opforce");
+                    player.SetField("maxhealth", player.GetField<int>("maxhealth") * 3);
+                    player.Health *= 3;
+                    break;
+                case RollType.ZombieIncantation:
+                    player.SetField("zombie_incantation", 1);
+                    break;
+                case RollType.Tombstone:
+                    player.SetField("rtd_tombstone", 1);
+                    break;
+                case RollType.Tank:
+                    player.Call("setmodel", "mp_fullbody_opforce_juggernaut");
+                    player.Call("setviewmodel", "viewhands_juggernaut_opforce");
+                    player.SetField("maxhealth", player.GetField<int>("maxhealth") * 3);
+                    player.Health *= 3;
+                    player.TakeWeapon(player.CurrentWeapon);
+                    player.GiveWeapon("riotshield_mp");
+                    player.AfterDelay(300, e => player.SwitchToWeaponImmediate("riotshield_mp"));
+                    player.Call("attachshieldmodel", "weapon_riot_shield_mp", "tag_shield_back");
+                    break;
+                case RollType.Boomer:
+                    player.SetField("rtd_boomer", 1);
+                    Utility.SetZombieSniperModel(player);
+                    break;
+                case RollType.Spider:
+                    player.SetField("rtd_spider", 1);
+                    Utility.SetZombieSniperModel(player);
+                    break;
+                case RollType.JetPack:
+                    player.SetField("rtd_exo", 1);
+                    break;
+                case RollType.JetPackJuggernaut:
+                    player.SetField("rtd_exo", 1);
+                    player.Call("setmodel", "mp_fullbody_opforce_juggernaut");
+                    player.Call("setviewmodel", "viewhands_juggernaut_opforce");
+                    player.SetField("maxhealth", player.GetField<int>("maxhealth") * 3);
+                    player.Health *= 3;
+                    break;
+                case RollType.JetPackISISZombie:
+                    player.SetField("rtd_exo", 1);
+                    player.SetField("rtd_isis", 1);
+                    player.TakeWeapon(player.CurrentWeapon);
+                    player.GiveWeapon("c4death_mp");
+                    player.AfterDelay(300, e => player.SwitchToWeaponImmediate("c4death_mp"));
+                    break;
+                case RollType.DiscoZombie:
+                    if (ZombieRollTheDice.hasDiscoZombie)
+                    {
+                        DoRolled(player);
+                        return;
+                    }
+                    player.SetField("rtd_disco", 1);
+                    ZombieRollTheDice.hasDiscoZombie = true;
+                    ZombieRollTheDice.curretDiscoZombie = player;
+                    player.SetField("maxhealth", player.GetField<int>("maxhealth") * 2);
+                    player.Health *= 2;
+                    break;
             }
         }
 
@@ -684,7 +613,7 @@ namespace INF3
             }
             else
             {
-                type.OnRolled.DynamicInvoke(player);
+                type.DoRolled(player);
                 PrintRollName(player, type);
             }
         }
@@ -833,16 +762,8 @@ namespace INF3
 
         private void SpiderAcidAreaThink(Entity player, Entity attacker)
         {
-            if (player.GetField<int>("perk_cherry") == 1)
-            {
-                player.Notify("acid_damage", attacker, 20);
-            }
-            else
-            {
-                player.Notify("acid_damage", attacker, 40);
-            }
+            player.Notify("acid_damage", attacker);
             player.SetField("onhitacid", 1);
-
             player.AfterDelay(1500, e => player.SetField("onhitacid", 0));
         }
     }

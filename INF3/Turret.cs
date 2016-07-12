@@ -6,21 +6,39 @@ using InfinityScript;
 
 namespace INF3
 {
-    public abstract class Turret
+    public enum TurretType
     {
-        protected delegate string TurretHud(Entity player);
-        protected delegate void TurretFunc(Entity player);
+        Turret,
+        Sentry,
+        GL,
+        SAM
+    }
 
-        protected Entity Entity { get; }
-        protected TurretHud OnTurretString { get; set; }
-        protected TurretFunc OnTurretFire { get; set; }
+    public abstract class Turret : IUsable
+    {
+        public event Func<Entity, string> UsableText;
+        public event Action<Entity> UsableThink;
+
+        public Entity Entity { get; }
+        public Vector3 Origin
+        {
+            get
+            {
+                return Entity.Origin;
+            }
+        }
+        public int Range { get; }
 
         public Turret(string weapon, string model, Vector3 origin, Vector3 angle, int toparc = 0, int bottomarc = 0, int leftarc = 0, int rightarc = 0)
         {
+            Range = 50;
+
             Function.SetEntRef(-1);
             Entity = Function.Call<Entity>("spawnturret", "misc_turret", origin, weapon);
             Entity.Call("setmodel", model);
             Entity.SetField("angles", angle);
+            Entity.Call("sethintstring", " ");
+            Entity.Call("laseron");
             if (toparc != 0)
             {
                 Entity.Call("settoparc", toparc);
@@ -37,16 +55,29 @@ namespace INF3
             {
                 Entity.Call("setrightarc", bottomarc);
             }
+
+            UsableText += player =>
+            {
+                if (player.Call<int>("isusingturret") == 0 && player.Origin.DistanceTo(Entity.Origin) < 50)
+                {
+                    return "Press ^3[{+activate}] ^7to use.";
+                }
+                else if (player.Call<int>("isusingturret") == 1 && player.Origin.DistanceTo(Entity.Origin) < 50)
+                {
+                    return "Press ^3[{+activate}] ^7to drop.";
+                }
+                return "";
+            };
         }
 
-        public string UsableText(Entity player)
+        public string GetUsableText(Entity player)
         {
-            return (string)OnTurretString.DynamicInvoke(player);
+            return UsableText(player);
         }
 
-        public void Usable(Entity player)
+        public void DoUsableFunc(Entity player)
         {
-            OnTurretFire.DynamicInvoke(player);
+            UsableThink(player);
         }
     }
 
@@ -54,18 +85,7 @@ namespace INF3
     {
         public OnGroundTurret(Vector3 origin, Vector3 angle) : base("sentry_minigun_mp", "weapon_minigun", origin, angle)
         {
-            OnTurretString += new TurretHud(player =>
-            {
-                if (player.Call<int>("isusingturret") == 0 && player.Origin.DistanceTo(Entity.Origin) < 50)
-                {
-                    return "Press ^3[{+activate}] ^7to use.";
-                }
-                else if (player.Call<int>("isusingturret") == 1 && player.Origin.DistanceTo(Entity.Origin) < 50)
-                {
-                    return "Press ^3[{+activate}] ^7to drop.";
-                }
-                return "";
-            });
+
         }
     }
 
@@ -73,47 +93,68 @@ namespace INF3
     {
         public Sentry(Vector3 origin, Vector3 angle) : base("sentry_minigun_mp", "sentry_minigun_weak", origin, angle)
         {
-            OnTurretString += new TurretHud(player =>
-            {
-                if (player.Call<int>("isusingturret") == 0 && player.Origin.DistanceTo(Entity.Origin) < 50)
-                {
-                    return "Press ^3[{+activate}] ^7to use.";
-                }
-                else if (player.Call<int>("isusingturret") == 1 && player.Origin.DistanceTo(Entity.Origin) < 50)
-                {
-                    return "Press ^3[{+activate}] ^7to drop.";
-                }
-                return "";
-            });
+
         }
     }
 
-    public class GL:Turret
+    public class GL : Turret
     {
         private bool cooding = false;
 
-        public GL(Vector3 origin, Vector3 angle) : base("sam_mp", "sentry_grenade_launcher", origin, angle)
+        public GL(Vector3 origin, Vector3 angle) : base("sam_mp", "sentry_grenade_launcher", origin, angle, 30, 30, 60, 60)
         {
-            OnTurretString += new TurretHud(player =>
+            UsableThink += player =>
             {
-                if (player.Call<int>("isusingturret") == 0 && player.Origin.DistanceTo(Entity.Origin) < 50)
+                if (!cooding)
                 {
-                    return "Press ^3[{+activate}] ^7to use.";
-                }
-                else if (player.Call<int>("isusingturret") == 1 && player.Origin.DistanceTo(Entity.Origin) < 50)
-                {
-                    return "Press ^3[{+activate}] ^7to drop.";
-                }
-                return "";
-            });
+                    cooding = true;
 
-            OnTurretFire += new TurretFunc(player => 
+                    Function.SetEntRef(-1);
+                    Vector3 vector = Function.Call<Vector3>("anglestoforward", player.Call<Vector3>("getplayerangles"));
+                    Vector3 dsa = new Vector3(vector.X * 1000000f, vector.Y * 1000000f, vector.Z * 1000000f);
+
+                    Entity.AfterDelay(0, e => { if (player.Call<int>("isusingturret") == 1) { Function.SetEntRef(-1); Function.Call("magicbullet", "xm25_mp", Entity.Call<Vector3>("gettagorigin", "tag_laser"), dsa, player); } });
+
+                    Entity.AfterDelay(500, e => cooding = false);
+                }
+            };
+        }
+    }
+
+    public class SAM : Turret
+    {
+        private bool cooding = false;
+
+        public SAM(Vector3 origin, Vector3 angle) : base("sam_mp", "mp_sam_turret", origin, angle)
+        {
+            UsableThink += player =>
             {
-                if (!cooding && player.Call<int>("isusingturret") == 1 && player.Origin.DistanceTo(Entity.Origin) < 50 && player.Call<int>("attackbuttonpressed") == 1)
+                if (!cooding)
                 {
+                    cooding = true;
 
+                    Vector3 le1 = Entity.Call<Vector3>("gettagorigin", "tag_le_missile1");
+                    Vector3 le2 = Entity.Call<Vector3>("gettagorigin", "tag_le_missile2");
+                    Vector3 ri1 = Entity.Call<Vector3>("gettagorigin", "tag_ri_missile1");
+                    Vector3 ri2 = Entity.Call<Vector3>("gettagorigin", "tag_ri_missile2");
+
+                    var dff = new Func<Entity, Vector3>(ent =>
+                    {
+                        Function.SetEntRef(-1);
+                        Vector3 vector = Function.Call<Vector3>("anglestoforward", ent.Call<Vector3>("getplayerangles"));
+                        Vector3 dsa = new Vector3(vector.X * 1000000f, vector.Y * 1000000f, vector.Z * 1000000f);
+
+                        return dsa;
+                    });
+
+                    Entity.AfterDelay(0, e => { if (player.Call<int>("isusingturret") == 1) { Function.SetEntRef(-1); Function.Call("magicbullet", "sam_projectile_mp", le1, dff(player), player); } });
+                    Entity.AfterDelay(500, e => { if (player.Call<int>("isusingturret") == 1) { Function.SetEntRef(-1); Function.Call("magicbullet", "sam_projectile_mp", ri1, dff(player), player); } });
+                    Entity.AfterDelay(1000, e => { if (player.Call<int>("isusingturret") == 1) { Function.SetEntRef(-1); Function.Call("magicbullet", "sam_projectile_mp", le2, dff(player), player); } });
+                    Entity.AfterDelay(1500, e => { if (player.Call<int>("isusingturret") == 1) { Function.SetEntRef(-1); Function.Call("magicbullet", "sam_projectile_mp", ri2, dff(player), player); } });
+
+                    Entity.AfterDelay(5000, e => cooding = false);
                 }
-            });
+            };
         }
     }
 }

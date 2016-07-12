@@ -34,7 +34,7 @@ namespace INF3
                 player.OnNotify("cherry_exploed", (ent, attacker) => ElectricCherryExploed(ent, attacker.As<Entity>()));
                 player.OnNotify("widow_exploed", (ent, origin) => WidowsWineExploed(ent, origin.As<Vector3>()));
                 player.OnNotify("isis_exploed", ent => SelfExpoledISIS(ent));
-                player.OnNotify("acid_damage", (ent, attacker, damage) => AcidDamage(ent, attacker.As<Entity>(), damage.As<int>()));
+                player.OnNotify("acid_damage", (ent, attacker) => AcidDamage(ent, attacker.As<Entity>()));
             };
         }
 
@@ -75,7 +75,7 @@ namespace INF3
         private void WidowsWineExploed(Entity player, Vector3 origin)
         {
             Call("RadiusDamage", origin, 300, 100, 20, player, "MOD_EXPLOSIVE", "bomb_site_mp");
-            PlayFx(barrelfirefx, origin);
+            PlayFx(selfexploedfx, origin);
         }
         private void SelfExpoledISIS(Entity player)
         {
@@ -83,9 +83,16 @@ namespace INF3
             PlayFx(radiusexploed, player.Origin);
             player.PlaySoundAsMaster(Sound.BombExploedSound);
         }
-        private void AcidDamage(Entity player, Entity attacker, int damage)
+        private void AcidDamage(Entity player, Entity attacker)
         {
-            player.Call("finishplayerdamage", player, attacker, damage, 0, 0, "bomb_site_mp", player.Origin, "MOD_EXPLOSIVE", 0);
+            if (player.HasPerkCola(PerkColaType.ELECTRIC_CHERRY))
+            {
+                player.Call("finishplayerdamage", player, attacker, 20, 0, 0, "bomb_site_mp", player.Origin, "MOD_EXPLOSIVE", 0);
+            }
+            else
+            {
+                player.Call("finishplayerdamage", player, attacker, 40, 0, 0, "bomb_site_mp", player.Origin, "MOD_EXPLOSIVE", 0);
+            }
             player.Call("iprintlnbold", "^1You are into the Spider acid aera. Get out from here right now!");
         }
         private void DropMoney(Vector3 origin)

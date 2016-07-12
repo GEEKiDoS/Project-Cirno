@@ -59,6 +59,22 @@ namespace INF3
             //Debug
             Utility.SetDvar("inf3_allow_test", 0);
 
+            //No Humans auto change map
+            OnInterval(10000, () =>
+            {
+                if (Call<int>("getteamscore", "axis") > 1 && Call<int>("getteamscore", "allies") == 0)
+                {
+                    AfterDelay(15000, () => 
+                    {
+                        if (Call<int>("getteamscore", "axis") > 1 && Call<int>("getteamscore", "allies") == 0)
+                            Utilities.ExecuteCommand("map_rotate");
+                    });
+                    return false;
+                }
+
+                return true;
+            });
+
             PlayerConnected += player =>
             {
                 //Init Hud
@@ -421,14 +437,14 @@ namespace INF3
                 player.Suicide();
             }
 
-            if (message=="!givemoney")
+            if (message == "!givemoney")
             {
                 player.WinCash(10000);
             }
 
-            if (message=="!buff")
+            if (message == "!buff")
             {
-                if (player.GetTeam()=="allies")
+                if (player.GetTeam() == "allies")
                 {
                     player.GiveAllPerkCola();
                 }

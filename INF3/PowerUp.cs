@@ -411,7 +411,7 @@ namespace INF3
             player.AfterDelay(30000, e =>
             {
                 PowerUpInfo("Fire Sale Off", new Vector3(1, 1, 1));
-                Utility.SetDvar(player.GetTeam() + "_fire_sale", 0);
+                Utility.SetDvar("bouns_fire_sale", 0);
             });
         }
 
