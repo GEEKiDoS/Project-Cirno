@@ -24,13 +24,11 @@ namespace INF3
 
     public abstract class BoxEntity : IUsable, IDisposable
     {
-        private bool disposed = false;
-
         private bool isObjective = false;
         private int objectiveId = -1;
 
-        public event Func<Entity, string> UsableText;
-        public event Action<Entity> UsableThink;
+        public virtual event Func<Entity, string> UsableText;
+        public virtual event Action<Entity> UsableThink;
 
 
         public Entity Entity { get; private set; }
@@ -65,21 +63,30 @@ namespace INF3
 
         public BoxEntity(BoxType type, Vector3 origin, Vector3 angle, int range)
         {
-            Type = type;
-            Range = range;
+            try
+            {
+                Type = type;
+                Range = range;
 
-            if (Type == BoxType.Door || Type == BoxType.PayDoor)
-            {
-                Entity = Utility.Spawn("script_model", origin);
-                Entity.SetField("angles", angle);
-            }
-            else
-            {
-                if (Type == BoxType.Power && MapEdit.HasPower)
+                if (Type == BoxType.Door || Type == BoxType.PayDoor)
                 {
-                    return;
+                    Entity = Utility.Spawn("script_model", origin);
+                    Entity.SetField("angles", angle);
                 }
-                Entity = MapEdit.SpawnCrate(origin, angle);
+                else
+                {
+                    if (Type == BoxType.Power && MapEdit.HasPower)
+                    {
+                        return;
+                    }
+                    Entity = MapEdit.SpawnCrate(origin, angle);
+                }
+
+                MapEdit.usables.Add(this);
+            }
+            catch (Exception)
+            {
+                Dispose(false);
             }
         }
 
@@ -95,25 +102,35 @@ namespace INF3
         }
         #endregion
 
-        public string GetUsableText(Entity player)
+        public virtual string GetUsableText(Entity player)
         {
             return UsableText(player);
         }
 
-        public void DoUsableFunc(Entity player)
+        public virtual void DoUsableFunc(Entity player)
         {
             UsableThink(player);
         }
 
-        public void Dispose()
+        #region IDisposable Support
+        private bool disposedValue = false; // 要检测冗余调用
+
+        protected virtual void Dispose(bool disposing)
         {
-            disposed = true;
-
-            Laptop.Notify("stop_rotate");
-
-            AfterDelay(100, e =>
+            if (!disposedValue)
             {
-                Entity.Call("delete");
+                if (disposing)
+                {
+                    if (Laptop != null)
+                    {
+                        Laptop.Notify("stop_rotate");
+                    }
+                }
+
+                if (Entity != null)
+                {
+                    Entity.Call("delete");
+                }
                 if (Laptop != null)
                 {
                     Laptop.Call("delete");
@@ -128,8 +145,18 @@ namespace INF3
                     Function.SetEntRef(-1);
                     Function.Call("objective_delete", ObjectiveId);
                 }
-            });
+
+                MapEdit.usables.Remove(this);
+
+                disposedValue = true;
+            }
         }
+
+        public void Dispose()
+        {
+            Dispose(true);
+        }
+        #endregion
     }
 
     public class Door : BoxEntity
@@ -200,7 +227,7 @@ namespace INF3
                         case DoorState.Open:
                             return "Door is Open.";
                         case DoorState.Close:
-                            return "Continuous press ^ 3[{+activate}] ^7to attack the door.";
+                            return "Continuous press ^3[{+activate}] ^7to attack the door.";
                         case DoorState.Broken:
                             return "^1Door is Broken";
                     }
@@ -826,34 +853,42 @@ namespace INF3
                     break;
                 case 2:
                     PrintGambleInfo(player, "You win $1000.", GambleType.Good);
+                    player.Notify("money", Entity.Origin);
                     player.WinCash(1000);
                     break;
                 case 3:
                     PrintGambleInfo(player, "You win $2000.", GambleType.Good);
+                    player.Notify("money", Entity.Origin);
                     player.WinCash(2000);
                     break;
                 case 4:
                     PrintGambleInfo(player, "You lose $500.", GambleType.Bad);
+                    player.Notify("money", player.Origin);
                     player.PayCash(500);
                     break;
                 case 5:
                     PrintGambleInfo(player, "You lose all money.", GambleType.Bad);
+                    player.Notify("money", player.Origin);
                     player.ClearCash();
                     break;
                 case 6:
                     PrintGambleInfo(player, "You win $10000.", GambleType.Excellent);
+                    player.Notify("money", Entity.Origin);
                     player.WinCash(10000);
                     break;
                 case 7:
                     PrintGambleInfo(player, "You win 10 Bonus Points.", GambleType.Good);
+                    player.Notify("money", Entity.Origin);
                     player.WinPoint(10);
                     break;
                 case 8:
                     PrintGambleInfo(player, "You win 50 Bonus Points.", GambleType.Excellent);
+                    player.Notify("money", Entity.Origin);
                     player.WinPoint(50);
                     break;
                 case 9:
                     PrintGambleInfo(player, "You lose all Bonus Points.", GambleType.Bad);
+                    player.Notify("money", player.Origin);
                     player.ClearPoint();
                     break;
                 case 10:
@@ -883,7 +918,6 @@ namespace INF3
                                 //}
                                 //else
                                 //{
-                                PrintGambleInfo(player, "You die!", GambleType.Bad);
                                 player.Notify("self_exploed");
                                 //}
                                 break;
@@ -908,6 +942,7 @@ namespace INF3
                             //else
                             //{
                             item.GamblerText("Player " + player.Name + " robbed you all cash.", new Vector3(1, 1, 1), new Vector3(1, 0, 0), 1, 0.85f);
+                            item.Notify("money", item.Origin);
                             cash += item.GetCash();
                             item.ClearCash();
                             //}
@@ -952,6 +987,7 @@ namespace INF3
                     break;
                 case 18:
                     PrintGambleInfo(player, "Surprise!", GambleType.Terrible);
+                    player.Notify("money", player.Origin);
                     foreach (var item in Utility.Players)
                     {
                         if (item.GetTeam() == "allies" && item.IsAlive)
@@ -967,6 +1003,7 @@ namespace INF3
                             if (player != item)
                             {
                                 item.GamblerText("Surprise!", new Vector3(0, 0, 0), new Vector3(1, 1, 1), 1, 0);
+                                item.Notify("money", item.Origin);
                             }
                             //}
                         }

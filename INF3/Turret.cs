@@ -16,8 +16,8 @@ namespace INF3
 
     public abstract class Turret : IUsable
     {
-        public event Func<Entity, string> UsableText;
-        public event Action<Entity> UsableThink;
+        public virtual event Func<Entity, string> UsableText;
+        public virtual event Action<Entity> UsableThink;
 
         public Entity Entity { get; }
         public Vector3 Origin
@@ -68,14 +68,16 @@ namespace INF3
                 }
                 return "";
             };
+
+            MapEdit.usables.Add(this);
         }
 
-        public string GetUsableText(Entity player)
+        public virtual string GetUsableText(Entity player)
         {
             return UsableText(player);
         }
 
-        public void DoUsableFunc(Entity player)
+        public virtual void DoUsableFunc(Entity player)
         {
             UsableThink(player);
         }
@@ -85,7 +87,11 @@ namespace INF3
     {
         public OnGroundTurret(Vector3 origin, Vector3 angle) : base("sentry_minigun_mp", "weapon_minigun", origin, angle)
         {
-
+            return;
+        }
+        public override void DoUsableFunc(Entity player)
+        {
+            return;
         }
     }
 
@@ -93,7 +99,11 @@ namespace INF3
     {
         public Sentry(Vector3 origin, Vector3 angle) : base("sentry_minigun_mp", "sentry_minigun_weak", origin, angle)
         {
-
+            return;
+        }
+        public override void DoUsableFunc(Entity player)
+        {
+            return;
         }
     }
 
@@ -105,17 +115,24 @@ namespace INF3
         {
             UsableThink += player =>
             {
-                if (!cooding)
+                try
                 {
-                    cooding = true;
+                    if (!cooding)
+                    {
+                        cooding = true;
 
-                    Function.SetEntRef(-1);
-                    Vector3 vector = Function.Call<Vector3>("anglestoforward", player.Call<Vector3>("getplayerangles"));
-                    Vector3 dsa = new Vector3(vector.X * 1000000f, vector.Y * 1000000f, vector.Z * 1000000f);
+                        Function.SetEntRef(-1);
+                        Vector3 vector = Function.Call<Vector3>("anglestoforward", player.Call<Vector3>("getplayerangles"));
+                        Vector3 dsa = new Vector3(vector.X * 1000000f, vector.Y * 1000000f, vector.Z * 1000000f);
 
-                    Entity.AfterDelay(0, e => { if (player.Call<int>("isusingturret") == 1) { Function.SetEntRef(-1); Function.Call("magicbullet", "xm25_mp", Entity.Call<Vector3>("gettagorigin", "tag_laser"), dsa, player); } });
+                        Entity.AfterDelay(0, e => { if (player.Call<int>("isusingturret") == 1) { Function.SetEntRef(-1); Function.Call("magicbullet", "xm25_mp", Entity.Call<Vector3>("gettagorigin", "tag_laser"), dsa, player); } });
 
-                    Entity.AfterDelay(500, e => cooding = false);
+                        Entity.AfterDelay(1000, e => cooding = false);
+                    }
+                }
+                catch (Exception)
+                {
+                    cooding = false;
                 }
             };
         }
@@ -129,30 +146,37 @@ namespace INF3
         {
             UsableThink += player =>
             {
-                if (!cooding)
+                try
                 {
-                    cooding = true;
-
-                    Vector3 le1 = Entity.Call<Vector3>("gettagorigin", "tag_le_missile1");
-                    Vector3 le2 = Entity.Call<Vector3>("gettagorigin", "tag_le_missile2");
-                    Vector3 ri1 = Entity.Call<Vector3>("gettagorigin", "tag_ri_missile1");
-                    Vector3 ri2 = Entity.Call<Vector3>("gettagorigin", "tag_ri_missile2");
-
-                    var dff = new Func<Entity, Vector3>(ent =>
+                    if (!cooding)
                     {
-                        Function.SetEntRef(-1);
-                        Vector3 vector = Function.Call<Vector3>("anglestoforward", ent.Call<Vector3>("getplayerangles"));
-                        Vector3 dsa = new Vector3(vector.X * 1000000f, vector.Y * 1000000f, vector.Z * 1000000f);
+                        cooding = true;
 
-                        return dsa;
-                    });
+                        Vector3 le1 = Entity.Call<Vector3>("gettagorigin", "tag_le_missile1");
+                        Vector3 le2 = Entity.Call<Vector3>("gettagorigin", "tag_le_missile2");
+                        Vector3 ri1 = Entity.Call<Vector3>("gettagorigin", "tag_ri_missile1");
+                        Vector3 ri2 = Entity.Call<Vector3>("gettagorigin", "tag_ri_missile2");
 
-                    Entity.AfterDelay(0, e => { if (player.Call<int>("isusingturret") == 1) { Function.SetEntRef(-1); Function.Call("magicbullet", "sam_projectile_mp", le1, dff(player), player); } });
-                    Entity.AfterDelay(500, e => { if (player.Call<int>("isusingturret") == 1) { Function.SetEntRef(-1); Function.Call("magicbullet", "sam_projectile_mp", ri1, dff(player), player); } });
-                    Entity.AfterDelay(1000, e => { if (player.Call<int>("isusingturret") == 1) { Function.SetEntRef(-1); Function.Call("magicbullet", "sam_projectile_mp", le2, dff(player), player); } });
-                    Entity.AfterDelay(1500, e => { if (player.Call<int>("isusingturret") == 1) { Function.SetEntRef(-1); Function.Call("magicbullet", "sam_projectile_mp", ri2, dff(player), player); } });
+                        var dff = new Func<Entity, Vector3>(ent =>
+                        {
+                            Function.SetEntRef(-1);
+                            Vector3 vector = Function.Call<Vector3>("anglestoforward", ent.Call<Vector3>("getplayerangles"));
+                            Vector3 dsa = new Vector3(vector.X * 1000000f, vector.Y * 1000000f, vector.Z * 1000000f);
 
-                    Entity.AfterDelay(5000, e => cooding = false);
+                            return dsa;
+                        });
+
+                        Entity.AfterDelay(0, e => { if (player.Call<int>("isusingturret") == 1) { Function.SetEntRef(-1); Function.Call("magicbullet", "sam_projectile_mp", le1, dff(player), player); } });
+                        Entity.AfterDelay(250, e => { if (player.Call<int>("isusingturret") == 1) { Function.SetEntRef(-1); Function.Call("magicbullet", "sam_projectile_mp", ri1, dff(player), player); } });
+                        Entity.AfterDelay(500, e => { if (player.Call<int>("isusingturret") == 1) { Function.SetEntRef(-1); Function.Call("magicbullet", "sam_projectile_mp", le2, dff(player), player); } });
+                        Entity.AfterDelay(750, e => { if (player.Call<int>("isusingturret") == 1) { Function.SetEntRef(-1); Function.Call("magicbullet", "sam_projectile_mp", ri2, dff(player), player); } });
+
+                        Entity.AfterDelay(5000, e => cooding = false);
+                    }
+                }
+                catch (Exception)
+                {
+                    cooding = false;
                 }
             };
         }

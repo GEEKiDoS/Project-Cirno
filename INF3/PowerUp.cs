@@ -212,21 +212,27 @@ namespace INF3
                 {
                     case PowerUpType.MaxAmmo:
                         attacker.Notify("max_ammo");
+                        Utility.Println(player.Name + "take PowerUp - ^2Max Ammo");
                         break;
                     case PowerUpType.DoublePoints:
                         attacker.Notify("double_points");
+                        Utility.Println(player.Name + "take PowerUp - ^2Double Points");
                         break;
                     case PowerUpType.InstaKill:
                         attacker.Notify("insta_kill");
+                        Utility.Println(player.Name + "take PowerUp - ^2Insta-Kill");
                         break;
                     case PowerUpType.Nuke:
                         attacker.Notify("nuke_drop");
+                        Utility.Println(player.Name + "take PowerUp - ^2Nuke");
                         break;
                     case PowerUpType.FireSale:
                         attacker.Notify("fire_sale");
+                        Utility.Println(player.Name + "take PowerUp - ^2Fire Sale");
                         break;
                     case PowerUpType.BonusPoints:
                         attacker.Notify("bonus_points");
+                        Utility.Println(player.Name + "take PowerUp - ^2Max Ammo");
                         break;
                     case PowerUpType.Carpenter:
                         attacker.Notify("carpenter");

@@ -70,9 +70,9 @@ namespace INF3
             {
                 foreach (var item in usables)
                 {
-                    if (player.IsAlive && item.Origin.DistanceTo(player.Origin) <= item.Range)
+                    if (item.GetType().BaseType == typeof(BoxEntity))
                     {
-                        if (item.GetType().BaseType == typeof(BoxEntity))
+                        if (player.IsAlive && item.Origin.DistanceTo(player.Origin) <= item.Range)
                         {
                             item.DoUsableFunc(player);
                         }
@@ -87,9 +87,9 @@ namespace INF3
             {
                 foreach (var item in usables)
                 {
-                    if (player.Origin.DistanceTo(item.Origin) < 50 && player.Call<int>("attackbuttonpressed") == 1)
+                    if (item.GetType().BaseType == typeof(Turret))
                     {
-                        if (item.GetType().BaseType == typeof(Turret))
+                        if (player.Origin.DistanceTo(item.Origin) < 50 && player.Call<int>("attackbuttonpressed") == 1)
                         {
                             item.DoUsableFunc(player);
                         }
@@ -329,74 +329,68 @@ namespace INF3
 
         private void SpawnBox(BoxType type, params Parameter[] args)
         {
-            BoxEntity ent;
-
             switch (type)
             {
                 case BoxType.Door:
-                    ent = new Door(args[0].As<Vector3>(), args[1].As<Vector3>(), args[2].As<Vector3>(), args[3].As<int>(), args[4].As<int>(), args[5].As<int>(), args[6].As<int>());
+                    new Door(args[0].As<Vector3>(), args[1].As<Vector3>(), args[2].As<Vector3>(), args[3].As<int>(), args[4].As<int>(), args[5].As<int>(), args[6].As<int>());
                     break;
                 case BoxType.PayDoor:
-                    ent = new PayDoor(args[0].As<Vector3>(), args[1].As<Vector3>(), args[2].As<Vector3>(), args[3].As<int>(), args[4].As<int>(), args[5].As<int>(), args[6].As<int>());
+                    new PayDoor(args[0].As<Vector3>(), args[1].As<Vector3>(), args[2].As<Vector3>(), args[3].As<int>(), args[4].As<int>(), args[5].As<int>(), args[6].As<int>());
                     break;
                 case BoxType.Zipline:
-                    ent = new Zipline(args[0].As<Vector3>(), args[2].As<Vector3>(), args[1].As<Vector3>(), args[3].As<int>());
+                    new Zipline(args[0].As<Vector3>(), args[2].As<Vector3>(), args[1].As<Vector3>(), args[3].As<int>());
                     break;
                 case BoxType.Teleporter:
-                    ent = new Teleporter(args[0].As<Vector3>(), args[2].As<Vector3>(), args[1].As<Vector3>());
+                    new Teleporter(args[0].As<Vector3>(), args[2].As<Vector3>(), args[1].As<Vector3>());
                     break;
                 case BoxType.Trampline:
-                    ent = new Trampoline(args[0].As<Vector3>(), args[1].As<Vector3>(), args[2].As<int>());
+                    new Trampoline(args[0].As<Vector3>(), args[1].As<Vector3>(), args[2].As<int>());
                     break;
                 case BoxType.Power:
-                    ent = new Power(args[0].As<Vector3>(), args[1].As<Vector3>());
+                    new Power(args[0].As<Vector3>(), args[1].As<Vector3>());
                     break;
                 case BoxType.Ammo:
-                    ent = new Ammo(args[0].As<Vector3>(), args[1].As<Vector3>());
+                    new Ammo(args[0].As<Vector3>(), args[1].As<Vector3>());
                     break;
                 case BoxType.Gambler:
-                    ent = new Gambler(args[0].As<Vector3>(), args[1].As<Vector3>());
+                    new Gambler(args[0].As<Vector3>(), args[1].As<Vector3>());
                     break;
                 case BoxType.RandomAirstrike:
-                    ent = new RandomAirstrike(args[0].As<Vector3>(), args[1].As<Vector3>());
+                    new RandomAirstrike(args[0].As<Vector3>(), args[1].As<Vector3>());
                     break;
                 case BoxType.GobbleGumMachine:
-                    ent = new GobbleGumMachine(args[0].As<Vector3>(), args[1].As<Vector3>());
+                    new GobbleGumMachine(args[0].As<Vector3>(), args[1].As<Vector3>());
                     break;
                 case BoxType.PerkColaMachine:
-                    ent = new PerkColaMachine(args[0].As<Vector3>(), args[1].As<Vector3>(), (PerkColaType)args[2].As<int>());
+                    new PerkColaMachine(args[0].As<Vector3>(), args[1].As<Vector3>(), (PerkColaType)args[2].As<int>());
                     break;
                 case BoxType.RandomPerkCola:
-                    ent = new RandomPerkCola(args[0].As<Vector3>(), args[1].As<Vector3>());
+                    new RandomPerkCola(args[0].As<Vector3>(), args[1].As<Vector3>());
                     break;
                 default:
                     throw new Exception("Unknown BoxEntity");
             }
-            usables.Add(ent);
         }
 
         private void SpawnTurret(TurretType type, Vector3 origin, Vector3 angle)
         {
-            Turret ent;
-
             switch (type)
             {
                 case TurretType.Turret:
-                    ent = new OnGroundTurret(origin, angle);
+                    new OnGroundTurret(origin, angle);
                     break;
                 case TurretType.Sentry:
-                    ent = new Sentry(origin, angle);
+                    new Sentry(origin, angle);
                     break;
                 case TurretType.GL:
-                    ent = new GL(origin, angle);
+                    new GL(origin, angle);
                     break;
                 case TurretType.SAM:
-                    ent = new SAM(origin, angle);
+                    new SAM(origin, angle);
                     break;
                 default:
                     throw new Exception("Unknown Turret");
             }
-            usables.Add(ent);
         }
 
         private void LoadMapEdit()

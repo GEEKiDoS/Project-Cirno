@@ -354,6 +354,8 @@ namespace INF3
                     player.SetField("speed", 0.7f);
                     break;
                 case RollType.Javelin:
+                    player.GiveWeapon("javelin_mp");
+                    player.AfterDelay(300, e => player.SwitchToWeaponImmediate("javelin_mp"));
                     break;
                 case RollType.Riotshield:
                     player.TakeWeapon(player.CurrentWeapon);
@@ -762,7 +764,15 @@ namespace INF3
 
         private void SpiderAcidAreaThink(Entity player, Entity attacker)
         {
-            player.Notify("acid_damage", attacker);
+            if (player.HasPerkCola(PerkColaType.ELECTRIC_CHERRY))
+            {
+                player.Call("finishplayerdamage", player, attacker, 20, 0, 0, "bomb_site_mp", player.Origin, "MOD_EXPLOSIVE", 0);
+            }
+            else
+            {
+                player.Call("finishplayerdamage", player, attacker, 40, 0, 0, "bomb_site_mp", player.Origin, "MOD_EXPLOSIVE", 0);
+            }
+            player.Call("iprintlnbold", "^1You are into the Spider acid aera. Get out from here right now!");
             player.SetField("onhitacid", 1);
             player.AfterDelay(1500, e => player.SetField("onhitacid", 0));
         }

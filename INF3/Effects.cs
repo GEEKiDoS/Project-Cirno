@@ -21,12 +21,10 @@ namespace INF3
         public static readonly int flarefx = Function.Call<int>("loadfx", "smoke/signal_smoke_airdrop");
         public static readonly int redbeaconfx = Function.Call<int>("loadfx", "misc/flare_ambient");
         public static readonly int greenbeaconfx = Function.Call<int>("loadfx", "misc/flare_ambient_green");
-        public static readonly int moneyfx = Function.Call<int>("loadfx", "props/cash_player_dro");
+        public static readonly int moneyfx = Function.Call<int>("loadfx", "props/cash_player_drop");
 
         public Effects()
         {
-            OnNotify("money", origin => DropMoney(origin.As<Vector3>()));
-
             PlayerConnected += player =>
             {
                 player.OnNotify("self_exploed", ent => SelfExploed(ent));
@@ -34,7 +32,7 @@ namespace INF3
                 player.OnNotify("cherry_exploed", (ent, attacker) => ElectricCherryExploed(ent, attacker.As<Entity>()));
                 player.OnNotify("widow_exploed", (ent, origin) => WidowsWineExploed(ent, origin.As<Vector3>()));
                 player.OnNotify("isis_exploed", ent => SelfExpoledISIS(ent));
-                player.OnNotify("acid_damage", (ent, attacker) => AcidDamage(ent, attacker.As<Entity>()));
+                player.OnNotify("money", (ent, origin) => DropMoney(origin.As<Vector3>()));
             };
         }
 
@@ -82,18 +80,6 @@ namespace INF3
             Call("RadiusDamage", player.Origin, 256, 400, 70, player, "MOD_EXPLOSIVE", "bomb_site_mp");
             PlayFx(radiusexploed, player.Origin);
             player.PlaySoundAsMaster(Sound.BombExploedSound);
-        }
-        private void AcidDamage(Entity player, Entity attacker)
-        {
-            if (player.HasPerkCola(PerkColaType.ELECTRIC_CHERRY))
-            {
-                player.Call("finishplayerdamage", player, attacker, 20, 0, 0, "bomb_site_mp", player.Origin, "MOD_EXPLOSIVE", 0);
-            }
-            else
-            {
-                player.Call("finishplayerdamage", player, attacker, 40, 0, 0, "bomb_site_mp", player.Origin, "MOD_EXPLOSIVE", 0);
-            }
-            player.Call("iprintlnbold", "^1You are into the Spider acid aera. Get out from here right now!");
         }
         private void DropMoney(Vector3 origin)
         {
