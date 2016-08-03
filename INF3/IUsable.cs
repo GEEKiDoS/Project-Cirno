@@ -6,17 +6,21 @@ namespace INF3
     /// <summary>
     /// 允许实体可以使用玩家触发行为
     /// </summary>
-    public interface IUsable
+    public interface IUsable : IComparable<Vector3>
     {
         /// <summary>
         /// 当玩家靠近实体时执行
         /// </summary>
-        event Func<Entity,string> UsableText;
+        event Func<Entity, string> UsableText;
         /// <summary>
         /// 当玩家使用实体行为时执行
         /// </summary>
         event Action<Entity> UsableThink;
-        
+
+        /// <summary>
+        /// 实体编号
+        /// </summary>
+        int EntRef { get; }
         /// <summary>
         /// 位置
         /// </summary>

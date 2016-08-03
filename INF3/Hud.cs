@@ -71,44 +71,6 @@ namespace INF3
             return ScorePopupHuds[player.EntRef];
         }
 
-        public static void CreateCashHud(this Entity player)
-        {
-            HudElem hud = HudElem.CreateFontString(player, "hudbig", 1f);
-            hud.SetPoint("right", "right", -50, 100);
-            hud.HideWhenInMenu = true;
-            player.OnInterval(100, delegate (Entity ent)
-            {
-                if (player.GetTeam() == "allies")
-                {
-                    hud.SetText("^3$ ^7" + player.GetField<int>("aiz_cash"));
-                }
-                else
-                {
-                    hud.SetText("");
-                }
-                return player.IsPlayer;
-            });
-        }
-
-        public static void CreatePointHud(this Entity player)
-        {
-            HudElem hud = HudElem.CreateFontString(player, "default", 1f);
-            hud.SetPoint("right", "right", -50, 120);
-            hud.HideWhenInMenu = true;
-            player.OnInterval(100, delegate (Entity ent)
-            {
-                if (player.GetTeam() == "allies")
-                {
-                    hud.SetText("^5Bonus Points ^7" + player.GetField<int>("aiz_point"));
-                }
-                else
-                {
-                    hud.SetText("");
-                }
-                return player.IsPlayer;
-            });
-        }
-
         public static void GamblerText(this Entity player, string text, Vector3 color, Vector3 glowColor, float intensity, float glowIntensity)
         {
             HudElem hud = GambleTextHuds[player.EntRef];
@@ -184,19 +146,22 @@ namespace INF3
                         item.ChangeFontScaleOverTime(0.2f, 4.5f);
                         item.Call("fadeovertime", 0.2f);
                         item.Alpha = 0;
+                        if (list.IndexOf(item) == list.Count - 1)
+                        {
+                            player.AfterDelay(1000, ex =>
+                            {
+                                foreach (var item2 in list)
+                                {
+                                    item2.Call("destroy");
+                                }
+                            });
+                        }
                     });
-                }
-            });
-            player.AfterDelay(60000, e =>
-            {
-                foreach (var item in list)
-                {
-                    item.Call("destroy");
                 }
             });
         }
 
-        public static HudElem PerkHudNoEffect(this Entity player, string shader)
+        public static HudElem PerkHudNoEffect(this Entity player, PerkCola perk, bool playsound = false)
         {
             int perksAmount = player.PerkColasCount() - 1;
             int MultiplyTimes = 28 * perksAmount;
@@ -206,16 +171,18 @@ namespace INF3
             hudshader.VertAlign = "middle";
             hudshader.AlignY = "middle";
             hudshader.HorzAlign = "center";
-            hudshader.X = -410 + MultiplyTimes;
-            hudshader.Y = 160;
+            hudshader.X = -300 + MultiplyTimes;
+            hudshader.Y = 180;
             hudshader.Foreground = true;
-            hudshader.SetShader(shader, 25, 25);
+            hudshader.SetShader(perk.Icon, 25, 25);
+            hudshader.Call("fadeovertime", 0.5f);
             hudshader.Alpha = 1;
+            hudshader.SetField("perk", new Parameter(perk.Type));
 
             return hudshader;
         }
 
-        public static HudElem PerkHud(this Entity player, string shader, Vector3 color, string text)
+        public static HudElem PerkHud(this Entity player, PerkCola perk, bool playsound = false)
         {
             player.Call("setblurforplayer", 6, 0.5f);
             int perksAmount = player.PerkColasCount() - 1;
@@ -231,9 +198,9 @@ namespace INF3
             hudtext.X = 0;
             hudtext.Y = 0;
             hudtext.Foreground = true;
-            hudtext.Color = color;
+            hudtext.Color = perk.HudColor;
             hudtext.Alpha = 0;
-            hudtext.SetText(text);
+            hudtext.SetText(perk.HudName);
 
             var hudshader = HudElem.NewClientHudElem(player);
             hudshader.AlignX = "center";
@@ -243,8 +210,9 @@ namespace INF3
             hudshader.X = 0;
             hudshader.Y = 0;
             hudshader.Foreground = true;
-            hudshader.SetShader(shader, 25, 25);
+            hudshader.SetShader(perk.Icon, 25, 25);
             hudshader.Alpha = 1;
+            hudshader.SetField("perk", new Parameter(perk.Type));
 
             player.AfterDelay(300, e =>
             {
@@ -262,8 +230,8 @@ namespace INF3
                 hudtext.Alpha = 0;
                 hudshader.Call("scaleovertime", 1, 25, 25);
                 hudshader.Call("moveovertime", 1);
-                hudshader.X = -410 + MultiplyTimes;
-                hudshader.Y = 160;
+                hudshader.X = -300 + MultiplyTimes;
+                hudshader.Y = 180;
             });
             player.AfterDelay(4700, e =>
             {
@@ -278,14 +246,14 @@ namespace INF3
         {
             HudElem credits = HudElem.CreateFontString(player, "hudbig", 1.0f);
             credits.SetPoint("CENTER", "BOTTOM", 0, -70);
-            credits.Call("settext", "Project Cirno (INF3)");
+            credits.Call("settext", "Buffashion Infect");
             credits.Alpha = 0f;
             credits.SetField("glowcolor", new Vector3(1f, 0.5f, 1f));
             credits.GlowAlpha = 1f;
 
             HudElem credits2 = HudElem.CreateFontString(player, "hudbig", 0.6f);
             credits2.SetPoint("CENTER", "BOTTOM", 0, -90);
-            credits2.Call("settext", "Vesion 1.0 Beta. Code in: https://github.com/A2ON");
+            credits2.Call("settext", "Vesion 1.0 IS Beta. Code in: https://github.com/A2ON");
             credits2.Alpha = 0f;
             credits2.SetField("glowcolor", new Vector3(1f, 0.5f, 1f));
             credits2.GlowAlpha = 1f;

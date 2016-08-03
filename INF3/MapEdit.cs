@@ -32,11 +32,11 @@ namespace INF3
                 player.Call("notifyonplayercommand", "triggeruse", "+activate");
                 player.OnNotify("triggeruse", ent => UsableThink(ent));
 
-                player.OnInterval(100, e =>
-                {
-                    TurretFireThink(player);
-                    return true;
-                });
+                //player.OnInterval(100, e =>
+                //{
+                //    TurretFireThink(player);
+                //    return true;
+                //});
 
                 UsableHud(player);
 
@@ -72,7 +72,7 @@ namespace INF3
                 {
                     if (item.GetType().BaseType == typeof(BoxEntity))
                     {
-                        if (player.IsAlive && item.Origin.DistanceTo(player.Origin) <= item.Range)
+                        if (player.Origin.DistanceTo(item.Origin) < item.Range)
                         {
                             item.DoUsableFunc(player);
                         }
@@ -106,42 +106,62 @@ namespace INF3
 
             HudElem perk = HudElem.NewClientHudElem(player);
 
+            player.SetField("currentusable_entref", 0);
+
             player.OnInterval(100, e =>
             {
-                bool flag = false;
-                bool flag2 = false;
-                foreach (var item in usables)
+                try
                 {
-                    if (player.Origin.DistanceTo(item.Origin) >= item.Range)
+                    List<IUsable> _closingusables = new List<IUsable>();
+
+                    foreach (var item in usables)
                     {
-                        continue;
-                    }
-                    message.SetText(item.GetUsableText(player));
-                    if (item.GetType() == typeof(PerkColaMachine))
-                    {
-                        var ent = item as PerkColaMachine;
-                        if (ent.Type == BoxType.PerkColaMachine)
+                        if (player.Origin.DistanceTo(item.Origin) >= item.Range)
                         {
-                            var type = ent.PerkCola;
-                            perk.SetShader(type.Icon, 15, 15);
-                            perk.X = ent.Origin.X;
-                            perk.Y = ent.Origin.Y;
-                            perk.Z = ent.Origin.Z + 50f;
-                            perk.Call("setwaypoint", 1, 1);
-                            perk.Alpha = 0.7f;
-                            flag2 = true;
+                            continue;
+                        }
+                        else
+                        {
+                            _closingusables.Add(item);
                         }
                     }
-                    flag = true;
+
+                    if (_closingusables.Count > 0)
+                    {
+                        _closingusables.Sort();
+                        var ent = _closingusables[0];
+                        if (player.GetField<int>("currentusable_entref") != ent.EntRef || ent.GetType().BaseType == typeof(Turret))
+                        {
+                            message.SetText(ent.GetUsableText(player));
+                            if (ent.GetType() == typeof(PerkColaMachine))
+                            {
+                                var ent2 = ent as PerkColaMachine;
+                                var type = ent2.PerkCola;
+                                perk.SetShader(type.Icon, 15, 15);
+                                perk.X = ent.Origin.X;
+                                perk.Y = ent.Origin.Y;
+                                perk.Z = ent.Origin.Z + 50f;
+                                perk.Call("setwaypoint", 1, 1);
+                                perk.Alpha = 0.7f;
+                            }
+                            else
+                            {
+                                perk.Alpha = 0;
+                            }
+                            player.SetField("currentusable_entref", ent.EntRef);
+                        }
+                    }
+                    else
+                    {
+                        player.SetField("currentusable_entref", 0);
+                        message.SetText("");
+                        perk.Alpha = 0;
+                    }
                 }
-                if (!flag)
+                catch (Exception)
                 {
-                    message.SetText("");
                 }
-                if (!flag2)
-                {
-                    perk.Alpha = 0f;
-                }
+
                 return player.IsPlayer;
             });
         }
@@ -358,9 +378,6 @@ namespace INF3
                 case BoxType.RandomAirstrike:
                     new RandomAirstrike(args[0].As<Vector3>(), args[1].As<Vector3>());
                     break;
-                case BoxType.GobbleGumMachine:
-                    new GobbleGumMachine(args[0].As<Vector3>(), args[1].As<Vector3>());
-                    break;
                 case BoxType.PerkColaMachine:
                     new PerkColaMachine(args[0].As<Vector3>(), args[1].As<Vector3>(), (PerkColaType)args[2].As<int>());
                     break;
@@ -479,34 +496,34 @@ namespace INF3
                                         SpawnModel(strArray[0], ParseVector3(strArray[1]), new Vector3(0, ParseVector3(strArray[2]).Y, 0));
                                     }
                                     continue;
-                                case "turret":
-                                    strArray = strArray[1].Split(new char[] { ';' });
-                                    if (strArray.Length >= 2)
-                                    {
-                                        SpawnTurret(TurretType.Turret, ParseVector3(strArray[0]), new Vector3(0, ParseVector3(strArray[1]).Y, 0));
-                                    }
-                                    continue;
-                                case "sentry":
-                                    strArray = strArray[1].Split(new char[] { ';' });
-                                    if (strArray.Length >= 2)
-                                    {
-                                        SpawnTurret(TurretType.Sentry, ParseVector3(strArray[0]), new Vector3(0, ParseVector3(strArray[1]).Y, 0));
-                                    }
-                                    continue;
-                                case "gl":
-                                    strArray = strArray[1].Split(new char[] { ';' });
-                                    if (strArray.Length >= 2)
-                                    {
-                                        SpawnTurret(TurretType.GL, ParseVector3(strArray[0]), new Vector3(0, ParseVector3(strArray[1]).Y, 0));
-                                    }
-                                    continue;
-                                case "sam":
-                                    strArray = strArray[1].Split(new char[] { ';' });
-                                    if (strArray.Length >= 2)
-                                    {
-                                        SpawnTurret(TurretType.SAM, ParseVector3(strArray[0]), new Vector3(0, ParseVector3(strArray[1]).Y, 0));
-                                    }
-                                    continue;
+                                //case "turret":
+                                //    strArray = strArray[1].Split(new char[] { ';' });
+                                //    if (strArray.Length >= 2)
+                                //    {
+                                //        SpawnTurret(TurretType.Turret, ParseVector3(strArray[0]), new Vector3(0, ParseVector3(strArray[1]).Y, 0));
+                                //    }
+                                //    continue;
+                                //case "sentry":
+                                //    strArray = strArray[1].Split(new char[] { ';' });
+                                //    if (strArray.Length >= 2)
+                                //    {
+                                //        SpawnTurret(TurretType.Sentry, ParseVector3(strArray[0]), new Vector3(0, ParseVector3(strArray[1]).Y, 0));
+                                //    }
+                                //    continue;
+                                //case "gl":
+                                //    strArray = strArray[1].Split(new char[] { ';' });
+                                //    if (strArray.Length >= 2)
+                                //    {
+                                //        SpawnTurret(TurretType.GL, ParseVector3(strArray[0]), new Vector3(0, ParseVector3(strArray[1]).Y, 0));
+                                //    }
+                                //    continue;
+                                //case "sam":
+                                //    strArray = strArray[1].Split(new char[] { ';' });
+                                //    if (strArray.Length >= 2)
+                                //    {
+                                //        SpawnTurret(TurretType.SAM, ParseVector3(strArray[0]), new Vector3(0, ParseVector3(strArray[1]).Y, 0));
+                                //    }
+                                //    continue;
                                 case "zipline":
                                     strArray = strArray[1].Split(new char[] { ';' });
                                     if (strArray.Length >= 4)

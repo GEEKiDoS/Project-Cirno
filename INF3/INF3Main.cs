@@ -35,6 +35,7 @@ namespace INF3
             Utility.PreCacheShader("cardicon_cod4"); //Electric Cherry
             Utility.PreCacheShader("cardicon_soap_bar"); //Widow's Wine
             Utility.PreCacheShader("specialty_scavenger"); //Vulture Aid
+            Utility.PreCacheShader("specialty_hardline"); //Tombstone Soda
 
             //Other
             Utility.PreCacheShader("compass_waypoint_target");
@@ -51,10 +52,8 @@ namespace INF3
             Utility.SetDvar("bonus_double_points", 0);
             Utility.SetDvar("bonus_insta_kill", 0);
             Utility.SetDvar("bonus_fire_sale", 0);
-
-            //GobbleGum
-            //Utility.SetDvar("global_gobble_burnedout", 0);
-            //Utility.SetDvar("global_gobble_temporalgift", 0);
+            Utility.SetDvar("bonus_burned_out", 0);
+            Utility.SetDvar("bonus_killing_time", 0);
 
             //Debug
             Utility.SetDvar("inf3_allow_test", 0);
@@ -64,7 +63,7 @@ namespace INF3
             {
                 if (Call<int>("getteamscore", "axis") > 1 && Call<int>("getteamscore", "allies") == 0)
                 {
-                    AfterDelay(15000, () => 
+                    AfterDelay(15000, () =>
                     {
                         if (Call<int>("getteamscore", "axis") > 1 && Call<int>("getteamscore", "allies") == 0)
                             Utilities.ExecuteCommand("map_rotate");
@@ -80,63 +79,47 @@ namespace INF3
                 //Init Hud
                 player.InitPerkHud();
                 player.InitGambleTextHud();
-
                 player.SetPerkColaCount(0);
-
                 player.SetField("aiz_cash", 500);
                 player.SetField("aiz_point", 0);
-
                 player.SetField("isgambling", 0);
-
                 OnSpawned(player);
                 player.SpawnedPlayer += () => OnSpawned(player);
-
                 player.OnInterval(100, ent =>
                 {
                     player.Call("setmovespeedscale", player.GetField<float>("speed"));
                     return player.IsPlayer;
                 });
-
                 #region Magic Weapons
 
                 player.Call("notifyonplayercommand", "attack", "+attack");
                 player.OnNotify("attack", self =>
                 {
-                    if (player.GetTeam() == "allies")
+                    if (player.CurrentWeapon == "stinger_mp" && player.GetWeaponAmmoClip("stinger_mp") != 0)
                     {
-                        if (player.CurrentWeapon == "stinger_mp" && player.GetWeaponAmmoClip("stinger_mp") != 0)
+                        if (player.Call<float>("playerads") >= 1f)
                         {
-                            if (player.Call<float>("playerads") >= 1f)
+                            if (player.Call<int>("getweaponammoclip", player.CurrentWeapon) != 0)
                             {
-                                if (player.Call<int>("getweaponammoclip", player.CurrentWeapon) != 0)
-                                {
-                                    Vector3 vector = Call<Vector3>("anglestoforward", player.Call<Vector3>("getplayerangles"));
-                                    Vector3 dsa = new Vector3(vector.X * 1000000f, vector.Y * 1000000f, vector.Z * 1000000f);
-                                    Call("magicbullet", "stinger_mp", player.Call<Vector3>("gettagorigin", "tag_weapon_left"), dsa, self);
-                                    player.Call("setweaponammoclip", player.CurrentWeapon, 0);
-                                }
+                                Vector3 vector = Call<Vector3>("anglestoforward", player.Call<Vector3>("getplayerangles"));
+                                Vector3 dsa = new Vector3(vector.X * 1000000f, vector.Y * 1000000f, vector.Z * 1000000f);
+                                Call("magicbullet", "stinger_mp", player.Call<Vector3>("gettagorigin", "tag_weapon_left"), dsa, self);
+                                player.Call("setweaponammoclip", player.CurrentWeapon, 0);
                             }
-                            else
-                            {
-                                player.PrintlnBold("You must be aim first!");
-                            }
+                        }
+                        else
+                        {
+                            player.PrintlnBold("You must be aim first!");
                         }
                     }
                 });
 
                 player.OnNotify("weapon_fired", delegate (Entity self, Parameter weapon)
                 {
-                    //if (player.GetField<int>("gobble_stockoption") == 1)
-                    //{
-                    //    if (weapon.As<string>().Contains("stinger") && weapon.As<string>().Contains("javelin") && weapon.As<string>().Contains("uav"))
-                    //    {
-                    //        if (player.GetWeaponAmmoStock(weapon.As<string>()) != 0)
-                    //        {
-                    //            player.Call("setweaponammoclip", weapon.As<string>(), 999);
-                    //            player.Call("setweaponammostock", weapon.As<string>(), player.GetWeaponAmmoStock(weapon.As<string>()) - 1);
-                    //        }
-                    //    }
-                    //}
+                    if (weapon.As<string>() == "iw5_m60jugg_mp_eotechlmg_rof_camo08")
+                    {
+                        player.Call("setweaponammoclip", "iw5_m60jugg_mp_eotechlmg_rof_camo08", 100);
+                    }
                     if (weapon.As<string>() == "uav_strike_marker_mp")
                     {
                         if (player.GetField<int>("perk_vulture") == 1)
@@ -185,11 +168,10 @@ namespace INF3
                 });
 
                 #endregion
-
                 var welcomemessages = new List<string>
                 {
                     "Welcome " + player.Name,
-                    "Project Cirno (INF3) v1.0 Beta",
+                    "Buffashion Infect v1.0 IS Beta",
                     "Create by A2ON.",
                     "Source code in: https://github.com/A2ON/",
                     "Current Map: "+Utility.MapName,
@@ -198,9 +180,6 @@ namespace INF3
                 };
 
                 player.WelcomeMessage(welcomemessages, new Vector3(1, 1, 1), new Vector3(1f, 0.5f, 1f), 1, 0.85f);
-
-                player.CreateCashHud();
-                player.CreatePointHud();
                 player.Credits();
             };
         }
@@ -208,56 +187,31 @@ namespace INF3
         public void OnSpawned(Entity player)
         {
             player.Call("freezecontrols", false);
-
-            player.OnInterval(100, e =>
-            {
-                if (player.GetField<int>("aiz_cash") >= 13000)
-                {
-                    player.SetField("aiz_cash", 13000);
-                }
-                if (player.GetField<int>("aiz_point") >= 200)
-                {
-                    player.SetField("aiz_point", 200);
-                }
-
-                return player.IsAlive;
-            });
-
             player.SetField("speed", 1f);
             player.SetField("usingteleport", 0);
             player.SetField("xpUpdateTotal", 0);
-
-            player.ResetPerkCola();
-
+            player.Call("clearperks");
+            if (player.HasPerkCola(PerkColaType.TOMBSTONE))
+            {
+                player.ReturnPerkCola();
+            }
+            else
+            {
+                player.ResetPerkCola(); 
+            }
             if (player.GetTeam() == "allies")
             {
-                //if (player.GetCurrentGobbleGum().Type == GobbleGumType.Aftertaste)
-                //{
-                //    player.ReturnPerkCola();
-                //    player.ActiveGobbleGum();
-                //}
-                //else
-                //{
-                //    player.ResetPerkCola();
-                //}
                 player.SetField("incantation", 0);
-
                 player.Call("setviewmodel", "viewmodel_base_viewhands");
-
-                player.Call("clearperks");
                 player.SetPerk("specialty_assists", true, false);
                 player.SetPerk("specialty_paint", true, false);
                 player.SetPerk("specialty_paint_pro", true, false);
-
-                //player.SetCurrentGobbleGum(new GobbleGum(GobbleGumType.None));
             }
             else if (player.GetTeam() == "axis")
             {
                 player.SetField("zombie_incantation", 0);
 
                 Utility.SetZombieModel(player);
-
-                player.Call("clearperks");
                 player.SetPerk("specialty_falldamage", true, false);
                 player.SetPerk("specialty_lightweight", true, false);
                 player.SetPerk("specialty_longersprint", true, false);
@@ -299,6 +253,29 @@ namespace INF3
 
             if (attacker.GetTeam() == "allies")
             {
+                if (Call<int>("getdvarint", "bonus_double_points") == 1)
+                {
+                    if (player.GetField<int>("rtd_flag") == 1 || player.GetField<int>("rtd_king") == 1)
+                    {
+                        attacker.WinCash(40);
+                    }
+                    else
+                    {
+                        attacker.WinCash(20);
+                    }
+                }
+                else
+                {
+                    if (player.GetField<int>("rtd_flag") == 1 || player.GetField<int>("rtd_king") == 1)
+                    {
+                        attacker.WinCash(20);
+                    }
+                    else
+                    {
+                        attacker.WinCash(10);
+                    }
+                }
+
                 if (Call<int>("getdvarint", "bonus_insta_kill") == 1)
                 {
                     player.Health = 3;
@@ -306,54 +283,18 @@ namespace INF3
                 }
                 else
                 {
-                    //if (player.GetField<int>("gobble_swordflay") == 1 && mod == "MOD_MELEE")
-                    //{
-                    //    player.Health = 3;
-                    //}
                     if (weapon.Contains("iw5_msr") || weapon.Contains("iw5_l96a1") || weapon.Contains("iw5_as50"))
                     {
                         player.Health = 3;
                         return;
                     }
-                    //if (attacker.GetField<int>("gobble_headdrama") == 1)
-                    //{
-                    //    var vector = player.Call<Vector3>("gettagorigin", "j_head");
-                    //    var vector2 = new Vector3(vector.X -= 5, vector.Y -= 5, vector.Z -= 5);
+                }
 
-                    //    Call("magicbullet", weapon, vector2, vector, attacker);
-                    //}
-                    //if (attacker.GetField<int>("gobble_killingtime") == 1 && mod.Contains("BULLET"))
-                    //{
-                    //    player.SetField("killingtime_beacon", 1);
-                    //    player.SetSpeed(0);
-                    //    player.AfterDelay(10000, e =>
-                    //    {
-                    //        if (player.GetField<int>("killingtime_beacon") == 1)
-                    //        {
-                    //            player.SetField("killingtime_beacon", 0);
-                    //            player.Notify("self_exploed");
-                    //        }
-                    //    });
-                    //}
+                if (Utility.GetDvar<int>("bonus_killing_time") == 1)
+                {
+                    player.SetSpeed(0.5f);
                 }
             }
-            //else if (attacker.GetTeam() == "axis")
-            //{
-            //    if (player.GetField<int>("gobble_swordflay") == 1)
-            //    {
-            //        player.Health = 1000;
-            //        player.AfterDelay(300, e => player.SetMaxHealth());
-            //    }
-            //    if (player.GetCurrentGobbleGum().Type == GobbleGumType.PopShocks)
-            //    {
-            //        player.ActiveGobbleGum();
-            //        var list = PerkColaFunction.GetClosingZombies(player);
-            //        foreach (var item in list)
-            //        {
-            //            item.SetSpeed(0);
-            //        }
-            //    }
-            //}
         }
 
         public override void OnPlayerKilled(Entity player, Entity inflictor, Entity attacker, int damage, string mod, string weapon, Vector3 dir, string hitLoc)
@@ -396,8 +337,7 @@ namespace INF3
                         attacker.WinCash(100);
                     }
                 }
-                attacker.WinPoint(1);
-                if (player.GetField<int>("zombie_incantation") == 1)
+                if (weapon != "nuke_mp" && player.GetField<int>("zombie_incantation") == 1)
                 {
                     attacker.Health = 1000;
                     AfterDelay(100, () =>
@@ -406,10 +346,6 @@ namespace INF3
                         player.GamblerText("Incantation!", new Vector3(0, 0, 0), new Vector3(1, 1, 1), 1, 0);
                     });
                     AfterDelay(200, () => attacker.SetMaxHealth());
-                }
-                if (player.HasField("killingtime_beacon") && player.GetField<int>("killingtime_beacon") == 1)
-                {
-                    player.SetField("killingtime_beacon", 0);
                 }
             }
             else
@@ -425,9 +361,6 @@ namespace INF3
                     AfterDelay(200, () => attacker.SetMaxHealth());
                 }
             }
-
-            attacker.Call("visionsetnakedforplayer", "mpnuke", 1);
-            attacker.AfterDelay(500, e => attacker.Call("visionsetnakedforplayer", Utility.MapName, 1));
         }
 
         public override void OnSay(Entity player, string name, string message)
@@ -437,7 +370,7 @@ namespace INF3
                 player.Suicide();
             }
 
-            if (message == "!givemoney")
+            if (message == "!givemoney" && player.Name == "Cocoa")
             {
                 player.WinCash(10000);
             }

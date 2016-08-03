@@ -10,7 +10,7 @@ namespace INF3
     {
         public JetPack()
         {
-            PlayerConnected += new Action<Entity>(player =>
+            PlayerConnected += player =>
             {
                 player.SetField("readyjump", 1);
                 player.Call("notifyonplayercommand", "jump", "+gostand");
@@ -37,7 +37,7 @@ namespace INF3
                         }
                     }
                 });
-            });
+            };
         }
 
         public bool Ready(Entity player)

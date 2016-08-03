@@ -12,50 +12,18 @@ namespace INF3
     /// </summary>
     public enum PerkColaType
     {
-        /// <summary>
-        /// 快速复活苏打水
-        /// </summary>
         QUICK_REVIVE = 0,
-        /// <summary>
-        /// 快手可乐
-        /// </summary>
         SPEED_COLA = 1,
-        /// <summary>
-        /// 重装蛋奶酒
-        /// </summary>
         JUGGERNOG = 2,
-        /// <summary>
-        /// 加速剂
-        /// </summary>
         STAMIN_UP = 3,
-        /// <summary>
-        /// 三枪汽水
-        /// </summary>
         MULE_KICK = 4,
-        /// <summary>
-        /// 子弹分裂原浆啤酒II
-        /// </summary>
         DOUBLE_TAP = 5,
-        /// <summary>
-        /// 死亡射手鸡尾酒
-        /// </summary>
         DEAD_SHOT = 6,
-        /// <summary>
-        /// 防爆泡泡水
-        /// </summary>
         PHD = 7,
-        /// <summary>
-        /// 电力樱桃汽水
-        /// </summary>
         ELECTRIC_CHERRY = 8,
-        /// <summary>
-        /// 黑寡妇红酒
-        /// </summary>
         WIDOW_S_WINE = 9,
-        /// <summary>
-        /// 秃鹫辅助药水
-        /// </summary>
         VULTURE_AID = 10,
+        TOMBSTONE = 11,
     }
 
     public class PerkCola : IRandom
@@ -75,10 +43,9 @@ namespace INF3
             new PerkCola(PerkColaType.PHD),
             new PerkCola(PerkColaType.ELECTRIC_CHERRY),
             new PerkCola(PerkColaType.WIDOW_S_WINE),
-            new PerkCola(PerkColaType.VULTURE_AID)
+            new PerkCola(PerkColaType.VULTURE_AID),
+            new PerkCola(PerkColaType.TOMBSTONE),
         };
-
-        private delegate void PerkColaAction(Entity player);
 
         public PerkColaType Type { get; }
         public string FullName
@@ -109,6 +76,8 @@ namespace INF3
                         return "Widow's Wine";
                     case PerkColaType.VULTURE_AID:
                         return "Vulture Aid Elixir";
+                    case PerkColaType.TOMBSTONE:
+                        return "Tombstone Soda";
                     default:
                         return null;
                 }
@@ -142,6 +111,8 @@ namespace INF3
                         return "Widow's Wine";
                     case PerkColaType.VULTURE_AID:
                         return "Vulture Aid";
+                    case PerkColaType.TOMBSTONE:
+                        return "Tombstone";
                     default:
                         return null;
                 }
@@ -175,6 +146,8 @@ namespace INF3
                         return new Vector3(0.5f, 0.5f, 0.5f);
                     case PerkColaType.VULTURE_AID:
                         return new Vector3(0.9f, 0.5f, 0.2f);
+                    case PerkColaType.TOMBSTONE:
+                        return new Vector3(0.7f, 0.5f, 1);
                     default:
                         return new Vector3();
                 }
@@ -208,6 +181,8 @@ namespace INF3
                         return "cardicon_soap_bar";
                     case PerkColaType.VULTURE_AID:
                         return "specialty_scavenger";
+                    case PerkColaType.TOMBSTONE:
+                        return "specialty_hardline";
                     default:
                         return null;
                 }
@@ -220,27 +195,29 @@ namespace INF3
                 switch (Type)
                 {
                     case PerkColaType.QUICK_REVIVE:
-                        return 600;
+                        return 500;
                     case PerkColaType.SPEED_COLA:
-                        return 700;
+                        return 1500;
                     case PerkColaType.JUGGERNOG:
-                        return 1000;
+                        return 1200;
                     case PerkColaType.STAMIN_UP:
-                        return 800;
+                        return 1700;
                     case PerkColaType.MULE_KICK:
-                        return 700;
+                        return 2000;
                     case PerkColaType.DOUBLE_TAP:
-                        return 1000;
+                        return 1800;
                     case PerkColaType.DEAD_SHOT:
-                        return 600;
+                        return 1300;
                     case PerkColaType.PHD:
-                        return 800;
+                        return 1200;
                     case PerkColaType.ELECTRIC_CHERRY:
-                        return 600;
+                        return 1200;
                     case PerkColaType.WIDOW_S_WINE:
-                        return 1000;
+                        return 2000;
                     case PerkColaType.VULTURE_AID:
-                        return 600;
+                        return 1500;
+                    case PerkColaType.TOMBSTONE:
+                        return 1000;
                     default:
                         return 0;
                 }
@@ -261,27 +238,29 @@ namespace INF3
                 switch (Type)
                 {
                     case PerkColaType.QUICK_REVIVE:
-                        return 5;
+                        return 10;
                     case PerkColaType.SPEED_COLA:
                         return 3;
                     case PerkColaType.JUGGERNOG:
-                        return 1;
-                    case PerkColaType.STAMIN_UP:
                         return 2;
-                    case PerkColaType.MULE_KICK:
-                        return 4;
-                    case PerkColaType.DOUBLE_TAP:
+                    case PerkColaType.STAMIN_UP:
                         return 3;
-                    case PerkColaType.DEAD_SHOT:
-                        return 7;
-                    case PerkColaType.PHD:
+                    case PerkColaType.MULE_KICK:
+                        return 3;
+                    case PerkColaType.DOUBLE_TAP:
                         return 6;
+                    case PerkColaType.DEAD_SHOT:
+                        return 17;
+                    case PerkColaType.PHD:
+                        return 11;
                     case PerkColaType.ELECTRIC_CHERRY:
-                        return 7;
+                        return 15;
                     case PerkColaType.WIDOW_S_WINE:
                         return 1;
                     case PerkColaType.VULTURE_AID:
-                        return 7;
+                        return 12;
+                    case PerkColaType.TOMBSTONE:
+                        return 10;
                     default:
                         return 0;
                 }
@@ -293,173 +272,130 @@ namespace INF3
             Type = type;
         }
 
-        private PerkColaAction GiveFunction()
+        private void GivePerkCola(Entity player)
         {
             switch (Type)
             {
                 case PerkColaType.QUICK_REVIVE:
-                    return new PerkColaAction(player =>
-                    {
-                        player.SetField("perk_revive", 1);
-                    });
+                    player.SetField("perk_revive", 1);
+                    break;
                 case PerkColaType.SPEED_COLA:
-                    return new PerkColaAction(player =>
-                    {
-                        player.SetField("perk_speedcola", 1);
-                        player.SetPerk("specialty_fastreload", true, false);
-                        player.SetPerk("specialty_quickswap", true, false);
-                        player.SetPerk("specialty_quickdraw", true, false);
-                        player.SetPerk("specialty_armorpiercing", true, false);
-                    });
+                    player.SetField("perk_speedcola", 1);
+                    player.SetPerk("specialty_fastreload", true, false);
+                    player.SetPerk("specialty_quickswap", true, false);
+                    player.SetPerk("specialty_quickdraw", true, false);
+                    player.SetPerk("specialty_armorpiercing", true, false);
+                    break;
                 case PerkColaType.JUGGERNOG:
-                    return new PerkColaAction(player =>
-                    {
-                        player.SetField("perk_juggernog", 1);
-                        player.SetField("oldmodel", player.GetField<string>("model"));
-                        player.Call("setmodel", "mp_fullbody_ally_juggernaut");
-                        player.Call("setviewmodel", "viewhands_juggernaut_ally");
-                        player.SetField("maxhealth", 300);
-                        player.Health = 300;
-                    });
+                    player.SetField("perk_juggernog", 1);
+                    player.SetField("oldmodel", player.GetField<string>("model"));
+                    player.Call("setmodel", "mp_fullbody_ally_juggernaut");
+                    player.Call("setviewmodel", "viewhands_juggernaut_ally");
+                    player.SetField("maxhealth", 300);
+                    player.Health = 300;
+                    break;
                 case PerkColaType.STAMIN_UP:
-                    return new PerkColaAction(player =>
-                    {
-                        player.SetField("perk_staminup", 1);
-                        player.SetField("speed", 1.3f);
-                        player.SetPerk("specialty_marathon", true, false);
-                        player.SetPerk("specialty_lightweight", true, false);
-                        player.SetPerk("specialty_fastmantle", true, false);
-                        player.SetPerk("specialty_fastsprintrecovery", true, false);
-                    });
+                    player.SetField("perk_staminup", 1);
+                    player.SetSpeed(1.3f);
+                    player.SetPerk("specialty_marathon", true, false);
+                    player.SetPerk("specialty_lightweight", true, false);
+                    player.SetPerk("specialty_fastmantle", true, false);
+                    player.SetPerk("specialty_fastsprintrecovery", true, false);
+                    break;
                 case PerkColaType.MULE_KICK:
-                    return new PerkColaAction(player =>
-                    {
-                        player.SetField("perk_mulekick", 1);
-                        player.GiveWeapon(Sharpshooter._mulekickWeapon.Code);
-                        player.Call("givemaxammo", Sharpshooter._mulekickWeapon.Code);
-                    });
+                    player.SetField("perk_mulekick", 1);
+                    player.GiveWeapon(Sharpshooter._mulekickWeapon.Code);
+                    player.Call("givemaxammo", Sharpshooter._mulekickWeapon.Code);
+                    break;
                 case PerkColaType.DOUBLE_TAP:
-                    return new PerkColaAction(player =>
-                    {
-                        player.SetField("perk_doubletap", 1);
-                    });
+                    player.SetField("perk_doubletap", 1);
+                    break;
                 case PerkColaType.DEAD_SHOT:
-                    return new PerkColaAction(player =>
+                    player.SetField("perk_deadshot", 1);
+                    player.OnInterval(100, e =>
                     {
-                        player.SetField("perk_deadshot", 1);
-                        player.OnInterval(100, e =>
-                        {
-                            player.Call("recoilscaleon", 0);
-                            return player.IsPlayer && player.IsAlive && player.HasPerkCola(Type);
-                        });
-                        player.SetPerk("specialty_reducedsway", true, false);
-                        player.SetPerk("specialty_bulletaccuracy", true, false);
+                        player.Call("recoilscaleon", 0);
+                        return player.IsPlayer && player.IsAlive && player.HasPerkCola(Type);
                     });
+                    player.SetPerk("specialty_reducedsway", true, false);
+                    player.SetPerk("specialty_bulletaccuracy", true, false);
+                    break;
                 case PerkColaType.PHD:
-                    return new PerkColaAction(player =>
-                    {
-                        player.SetField("perk_phd", 1);
-                        player.SetPerk("_specialty_blastshield", true, false);
-                    });
+                    player.SetField("perk_phd", 1);
+                    player.SetPerk("_specialty_blastshield", true, false);
+                    player.SetPerk("specialty_throwback", true, false);
+                    break;
                 case PerkColaType.ELECTRIC_CHERRY:
-                    return new PerkColaAction(player =>
-                    {
-                        player.SetField("perk_cherry", 1);
-                    });
+                    player.SetField("perk_cherry", 1);
+                    break;
                 case PerkColaType.WIDOW_S_WINE:
-                    return new PerkColaAction(player =>
-                    {
-                        player.SetField("perk_widow", 1);
-                    });
+                    player.SetField("perk_widow", 1);
+                    break;
                 case PerkColaType.VULTURE_AID:
-                    return new PerkColaAction(player =>
-                    {
-                        player.SetField("perk_vulture", 1);
-                        Ammo.MaxAmmo(player);
-                        player.SetPerk("specialty_scavenger", true, false);
-                    });
-                default:
-                    return null;
+                    player.SetField("perk_vulture", 1);
+                    Ammo.MaxAmmo(player);
+                    player.SetPerk("specialty_scavenger", true, false);
+                    break;
+                case PerkColaType.TOMBSTONE:
+                    player.SetField("perk_tombstone", 1);
+                    break;
             }
         }
 
-        private PerkColaAction TakeFunction()
+        private void TakePerkCola(Entity player)
         {
             switch (Type)
             {
                 case PerkColaType.QUICK_REVIVE:
-                    return new PerkColaAction(player =>
-                    {
-                        player.SetField("perk_revive", 0);
-                    });
+                    player.SetField("perk_revive", 0);
+                    break;
                 case PerkColaType.SPEED_COLA:
-                    return new PerkColaAction(player =>
-                    {
-                        player.SetField("perk_speedcola", 0);
-                        player.DeletePerk("specialty_fastreload");
-                        player.DeletePerk("specialty_quickswap");
-                        player.DeletePerk("specialty_quickdraw");
-                    });
+                    player.SetField("perk_speedcola", 0);
+                    player.DeletePerk("specialty_fastreload");
+                    player.DeletePerk("specialty_quickswap");
+                    player.DeletePerk("specialty_quickdraw");
+                    break;
                 case PerkColaType.JUGGERNOG:
-                    return new PerkColaAction(player =>
-                    {
-                        player.SetField("perk_juggernog", 0);
-                        player.Call("setmodel", player.GetField<string>("oldmodel"));
-                        player.Call("setviewmodel", "viewmodel_base_viewhands");
-                        player.SetField("maxhealth", 100);
-                        player.Health = 100;
-                    });
+                    player.SetField("perk_juggernog", 0);
+                    player.Call("setmodel", player.GetField<string>("oldmodel"));
+                    player.Call("setviewmodel", "viewmodel_base_viewhands");
+                    player.SetField("maxhealth", 100);
+                    player.Health = 100;
+                    break;
                 case PerkColaType.STAMIN_UP:
-                    return new PerkColaAction(player =>
-                    {
-                        player.SetField("perk_staminup", 0);
-                        player.SetSpeed(1f);
-                        player.DeletePerk("specialty_marathon");
-                        player.DeletePerk("specialty_lightweight");
-                        player.DeletePerk("specialty_fastsprintrecovery");
-                    });
+                    player.SetField("perk_staminup", 0);
+                    player.SetSpeed(1f);
+                    player.DeletePerk("specialty_marathon");
+                    player.DeletePerk("specialty_lightweight");
+                    player.DeletePerk("specialty_fastsprintrecovery");
+                    break;
                 case PerkColaType.MULE_KICK:
-                    return new PerkColaAction(player =>
-                    {
-                        player.SetField("perk_mulekick", 0);
-                        player.GiveMaxAmmoWeapon(Sharpshooter._mulekickWeapon.Code);
-                    });
+                    player.SetField("perk_mulekick", 0);
+                    player.GiveMaxAmmoWeapon(Sharpshooter._mulekickWeapon.Code);
+                    break;
                 case PerkColaType.DOUBLE_TAP:
-                    return new PerkColaAction(player =>
-                    {
-                        player.SetField("perk_doubletap", 0);
-                    });
+                    player.SetField("perk_doubletap", 0);
+                    break;
                 case PerkColaType.DEAD_SHOT:
-                    return new PerkColaAction(player =>
-                    {
-                        player.SetField("perk_deadshot", 0);
-                        player.DeletePerk("specialty_reducedsway");
-                        player.DeletePerk("specialty_bulletaccuracy");
-                    });
+                    player.SetField("perk_deadshot", 0);
+                    player.DeletePerk("specialty_reducedsway");
+                    player.DeletePerk("specialty_bulletaccuracy");
+                    break;
                 case PerkColaType.PHD:
-                    return new PerkColaAction(player =>
-                    {
-                        player.SetField("perk_phd", 0);
-                        player.DeletePerk("_specialty_blastshield");
-                    });
+                    break;
                 case PerkColaType.ELECTRIC_CHERRY:
-                    return new PerkColaAction(player =>
-                    {
-                        player.SetField("perk_cherry", 0);
-                    });
+                    player.SetField("perk_cherry", 0);
+                    break;
                 case PerkColaType.WIDOW_S_WINE:
-                    return new PerkColaAction(player =>
-                    {
-                        player.SetField("perk_widow", 0);
-                    });
+                    player.SetField("perk_widow", 0);
+                    break;
                 case PerkColaType.VULTURE_AID:
-                    return new PerkColaAction(player =>
-                    {
-                        player.SetField("perk_vulture", 0);
-                        player.DeletePerk("specialty_scavenger");
-                    });
-                default:
-                    return null;
+                    player.SetField("perk_vulture", 0);
+                    player.DeletePerk("specialty_scavenger");
+                    break;
+                case PerkColaType.TOMBSTONE:
+                    player.SetField("perk_tombstone", 0);
+                    break;
             }
         }
 
@@ -489,6 +425,8 @@ namespace INF3
                     return "perk_widow";
                 case PerkColaType.VULTURE_AID:
                     return "perk_vulture";
+                case PerkColaType.TOMBSTONE:
+                    return "perk_tombstone";
                 default:
                     return null;
             }
@@ -504,13 +442,13 @@ namespace INF3
         public void GiveToPlayer(Entity player, bool haseffect)
         {
             player.SetPerkColaCount(player.PerkColasCount() + 1);
-            player.AddPerkHud(haseffect ? player.PerkHud(Icon, HudColor, HudName) : player.PerkHudNoEffect(Icon));
-            GiveFunction().DynamicInvoke(player);
+            player.AddPerkHud(haseffect ? player.PerkHud(this) : player.PerkHudNoEffect(this));
+            GivePerkCola(player);
         }
 
-        public void TakePerkCola(Entity player)
+        public void TakePlayerPerkCola(Entity player)
         {
-            TakeFunction().DynamicInvoke();
+            TakePerkCola(player);
         }
     }
 }

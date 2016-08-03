@@ -31,6 +31,8 @@
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
     <Prefer32Bit>false</Prefer32Bit>
+    <RegisterForComInterop>false</RegisterForComInterop>
+    <GenerateSerializationAssemblies>Off</GenerateSerializationAssemblies>
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="InfinityScript">
@@ -52,7 +54,6 @@
     <Compile Include="PowerUp.cs" />
     <Compile Include="Effects.cs" />
     <Compile Include="JetPack.cs" />
-    <Compile Include="GobbleGum.cs" />
     <Compile Include="Hud.cs" />
     <Compile Include="MapEdit.cs" />
     <Compile Include="PerkColaFunction.cs" />
@@ -60,7 +61,6 @@
     <Compile Include="Sharpshooter.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Sound.cs" />
-    <Compile Include="Tracer.cs" />
     <Compile Include="Turret.cs" />
     <Compile Include="Utility.cs" />
     <Compile Include="Weapon.cs" />

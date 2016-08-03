@@ -18,7 +18,7 @@ namespace INF3
         /// <summary>
         /// 提供一个公共随机数生成器，此字段为只读
         /// </summary>
-        public static readonly Random Random = new Random(GetRandomSeed());
+        public static readonly Random Random = new Random();
 
         /// <summary>
         /// 获取服务器的当前地图，此字段为只读
@@ -68,18 +68,6 @@ namespace INF3
                 Function.SetEntRef(-1);
                 return Function.Call<int>("gettime");
             }
-        }
-
-        /// <summary>
-        /// 随机种子
-        /// </summary>
-        /// <returns>种子值</returns>
-        private static int GetRandomSeed()
-        {
-            byte[] bytes = new byte[4];
-            System.Security.Cryptography.RNGCryptoServiceProvider rng = new System.Security.Cryptography.RNGCryptoServiceProvider();
-            rng.GetBytes(bytes);
-            return BitConverter.ToInt32(bytes, 0);
         }
 
         /// <summary>
@@ -358,7 +346,7 @@ namespace INF3
             {
                 player.Call("setmodel", "mp_body_opforce_henchmen_sniper");
             }
-            else
+            else if (MapName != "mp_radar")
             {
                 player.Call("setmodel", "mp_body_opforce_russian_" + GetModelEnv() + "_sniper");
             }
@@ -385,7 +373,7 @@ namespace INF3
                 {
                     player.Call("setmodel", "mp_body_opforce_ghillie_africa_militia_sniper");
                 }
-                else
+                else if (MapName != "mp_radar")
                 {
                     player.Call("setmodel", "mp_body_opforce_ghillie_" + GetViewModelEnv() + "_sniper");
                 }
@@ -395,7 +383,7 @@ namespace INF3
 
         #endregion
 
-        #region Cash Point System
+        #region Cash System
 
         public static int GetCash(this Entity player)
         {
@@ -415,26 +403,6 @@ namespace INF3
         public static void ClearCash(this Entity player)
         {
             player.SetField("aiz_cash", 0);
-        }
-
-        public static int GetPoint(this Entity player)
-        {
-            return player.GetField<int>("aiz_point");
-        }
-
-        public static void WinPoint(this Entity player, int point)
-        {
-            player.SetField("aiz_point", player.GetField<int>("aiz_point") + point);
-        }
-
-        public static void PayPoint(this Entity player, int point)
-        {
-            player.SetField("aiz_point", player.GetField<int>("aiz_point") - point);
-        }
-
-        public static void ClearPoint(this Entity player)
-        {
-            player.SetField("aiz_point", 0);
         }
 
         #endregion
@@ -607,17 +575,6 @@ namespace INF3
         }
 
         /// <summary>
-        /// 给与指定玩家指定的Perk-a-Cola
-        /// </summary>
-        /// <param name="player">指定玩家</param>
-        /// <param name="perk">要给与的Perk-a-Cola的对象</param>
-        public static void GivePerkCola(this Entity player, PerkColaType type)
-        {
-            var perk = new PerkCola(type);
-            perk.GiveToPlayer(player, true);
-        }
-
-        /// <summary>
         /// 给与指定玩家指定的Perk-a-Cola，但是不播放给与特效
         /// </summary>
         /// <param name="player">指定玩家</param>
@@ -633,10 +590,24 @@ namespace INF3
         /// </summary>
         /// <param name="player">指定玩家</param>
         /// <param name="perk">要删除的Perk-a-Cola的对象</param>
-        private static void RemovePerkCola(this Entity player, PerkColaType type)
+        public static void RemovePerkCola(this Entity player, PerkColaType type, bool tempdisable = false)
         {
             var perk = new PerkCola(type);
-            perk.TakePerkCola(player);
+            perk.TakePlayerPerkCola(player);
+
+            if (tempdisable)
+            {
+                var list = player.GetPerkColaHud();
+                foreach (var item in list)
+                {
+                    if (item.GetField<PerkColaType>("perk") == type)
+                    {
+                        item.Call("fadeovertime", 0.5f);
+                        item.Alpha = 0;
+                        break;
+                    }
+                }
+            }
         }
 
         /// <summary>
@@ -749,7 +720,7 @@ namespace INF3
         /// 给与玩家一个随机的Perk-a-Cola
         /// </summary>
         /// <param name="player">指定玩家</param>
-        public static void GiveRandomPerkCola(this Entity player)
+        public static void GiveRandomPerkCola(this Entity player, bool effect)
         {
             if (player.PerkColasCount() == MAX_PERKCOLAS)
             {
@@ -757,13 +728,13 @@ namespace INF3
             }
 
             var perk = PerkCola.GetRandomPerkCola();
-            if (player.HasPerkCola(perk.Type))
+            if (player.HasPerkCola(perk.Type) || (perk.Type == PerkColaType.TOMBSTONE && !player.HasPerkCola(PerkColaType.QUICK_REVIVE)))
             {
-                player.GiveRandomPerkCola();
+                player.GiveRandomPerkCola(effect);
                 return;
             }
 
-            perk.GiveToPlayer(player, true);
+            perk.GiveToPlayer(player, effect);
         }
 
         /// <summary>
@@ -785,6 +756,7 @@ namespace INF3
             player.SetField("perk_cherry", 0);
             player.SetField("perk_widow", 0);
             player.SetField("perk_vulture", 0);
+            player.SetField("perk_tombstone", 0);
 
             if (player.GetPerkColaHud() != null)
             {
@@ -799,7 +771,6 @@ namespace INF3
 
         public static void ReturnPerkCola(this Entity player)
         {
-            int speedcola = 0;
             int juggernog = 0;
             int staminup = 0;
             int mulekick = 0;
@@ -810,10 +781,6 @@ namespace INF3
             int widow = 0;
             int vultrue = 0;
 
-            if (player.GetField<int>("perk_speedcola") == 1)
-            {
-                speedcola = 1;
-            }
             if (player.GetField<int>("perk_juggernog") == 1)
             {
                 juggernog = 1;
@@ -853,10 +820,6 @@ namespace INF3
 
             player.ResetPerkCola();
 
-            if (speedcola == 1)
-            {
-                player.GivePerkColaNoEffect(PerkColaType.SPEED_COLA);
-            }
             if (juggernog == 1)
             {
                 player.GivePerkColaNoEffect(PerkColaType.JUGGERNOG);

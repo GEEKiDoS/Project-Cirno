@@ -44,17 +44,18 @@ namespace INF3
             };
         }
 
-        private string FormatTime(int seconds)
-        {
-            return string.Format("{0}:{1}", seconds / 60, (seconds % 60).ToString().PadLeft(2, '0'));
-
-        }
-
         public void SharpShooter_Tick()
         {
+            var _cycleTitle = HudElem.CreateServerFontString("objective", 1.4f);
+            _cycleTitle.SetPoint("TOPLEFT", "TOPLEFT", 115, 5);
+            _cycleTitle.HideWhenInMenu = true;
+            _cycleTitle.SetText("Weapon Cycling: ");
+
             _cycleTimer = HudElem.CreateServerFontString("objective", 1.4f);
-            _cycleTimer.SetPoint("TOPLEFT", "TOPLEFT", 115, 5);
+            _cycleTimer.SetPoint("TOPLEFT", "TOPLEFT", 255, 5);
             _cycleTimer.HideWhenInMenu = true;
+
+            _cycleTimer.Call("settimer", _cycleRemaining - 1);
 
             OnInterval(1000, () =>
             {
@@ -63,11 +64,10 @@ namespace INF3
                 if (_cycleRemaining <= 0)
                 {
                     _cycleRemaining = Utility.Random.Next(45, 90);
+                    _cycleTimer.Call("settimer", _cycleRemaining);
 
                     UpdateWeapon();
                 }
-
-                _cycleTimer.SetText("Weapon Cycling: " + FormatTime(_cycleRemaining));
 
                 return true;
             });
@@ -79,7 +79,7 @@ namespace INF3
             _secondeWeapon = Weapon.GetRandomSecondWeapon();
             _mulekickWeapon = Weapon.GetRandomFirstWeapon();
 
-            while (_mulekickWeapon.BaseName == _firstWeapon.BaseName || _mulekickWeapon.Type == Weapon.WeaponType.Launcher || _mulekickWeapon.Type == Weapon.WeaponType.Special || _mulekickWeapon.Type == Weapon.WeaponType.KillstreakHandheld)
+            while (_mulekickWeapon.BaseName == _firstWeapon.BaseName || _mulekickWeapon.Type == Weapon.WeaponType.Launcher || _mulekickWeapon.Type == Weapon.WeaponType.Killstreak || _mulekickWeapon.Type == Weapon.WeaponType.Special)
             {
                 _mulekickWeapon = Weapon.GetRandomFirstWeapon();
             }
@@ -107,7 +107,14 @@ namespace INF3
                     }
                     else
                     {
-                        player.GiveWeapon(_firstWeapon.Code);
+                        if (_firstWeapon.Type == Weapon.WeaponType.Launcher || _firstWeapon.Type == Weapon.WeaponType.Killstreak)
+                        {
+                            player.GiveMaxAmmoWeapon(_firstWeapon.Code);
+                        }
+                        else
+                        {
+                            player.GiveWeapon(_firstWeapon.Code);
+                        }
                         if (player.GetField<int>("perk_mulekick") == 1)
                         {
                             player.GiveWeapon(_mulekickWeapon.Code);
@@ -121,6 +128,7 @@ namespace INF3
                     }
 
                     player.GamblerText("Weapon Cycled", new Vector3(1, 1, 1), new Vector3(0.3f, 0.3f, 0.9f), 1, 0.85f);
+                    player.PlayLocalSound(Sound.WeaponCycledSound);
                 }
             }
         }
@@ -131,8 +139,15 @@ namespace INF3
             {
                 player.TakeAllWeapons();
 
-                player.GiveWeapon(_firstWeapon.Code);
-                player.GiveWeapon(_secondeWeapon.Code);
+                if (_firstWeapon.Type == Weapon.WeaponType.Launcher || _firstWeapon.Type == Weapon.WeaponType.Killstreak)
+                {
+                    player.GiveMaxAmmoWeapon(_firstWeapon.Code);
+                }
+                else
+                {
+                    player.GiveWeapon(_firstWeapon.Code);
+                }
+                player.GiveMaxAmmoWeapon(_secondeWeapon.Code);
 
                 player.GiveWeapon("frag_grenade_mp");
                 player.GiveWeapon("trophy_mp");
@@ -146,10 +161,12 @@ namespace INF3
                 {
                     var weapon = player.CurrentWeapon;
 
-                    if (weapon.StartsWith("rpg") || weapon.StartsWith("iw5_smaw") || weapon.StartsWith("m320") || weapon.StartsWith("stinger") || weapon.StartsWith("javelin") || weapon.StartsWith("gl") || weapon.StartsWith("uav"))
+                    if (player.HasField("perk_vulture") && player.GetField<int>("perk_vulture") == 1)
                     {
-                        if (player.IsAlive && player.HasField("perk_vulture") && player.GetField<int>("perk_vulture") == 1)
+                        if (weapon.StartsWith("rpg") || weapon.StartsWith("iw5_smaw") || weapon.StartsWith("m320") || weapon.StartsWith("stinger") || weapon.StartsWith("javelin") || weapon.StartsWith("gl") || weapon.StartsWith("uav"))
+                        {
                             player.Call("giveMaxAmmo", weapon);
+                        }
                     }
 
                     if (player.GetTeam() == "axis")
@@ -157,7 +174,7 @@ namespace INF3
                         return false;
                     }
 
-                    return true;
+                    return player.IsPlayer && player.IsAlive;
                 });
             }
         }

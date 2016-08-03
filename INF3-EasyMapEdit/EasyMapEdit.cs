@@ -159,6 +159,14 @@ namespace INF3
                 creating = false;
                 end = player.Origin;
                 player.Call("iprintlnbold", "wall end set: " + end);
+                if (start.Z <= end.Z)
+                {
+                    start.Z = start.Z - 15;
+                }
+                else
+                {
+                    end.Z = end.Z - 15;
+                }
                 File.AppendAllText(_currentPath, Environment.NewLine + "wall: " + end + ";" + start);
                 return;
             }
@@ -175,6 +183,14 @@ namespace INF3
                 creating = false;
                 end = player.Origin;
                 player.Call("iprintlnbold", "invwall end set: " + end);
+                if (start.Z <= end.Z)
+                {
+                    start.Z = start.Z - 15;
+                }
+                else
+                {
+                    end.Z = end.Z - 15;
+                }
                 File.AppendAllText(_currentPath, Environment.NewLine + "invwall: " + start + ";" + end);
                 return;
             }
@@ -304,6 +320,11 @@ namespace INF3
                     case "vulture":
                         perk = 10;
                         break;
+                    case "tombstone":
+                        perk = 11;
+                        break;
+                    default:
+                        return;
                 }
                 player.Call("iprintlnbold", split[0] + " set: " + player.Origin);
                 File.AppendAllText(_currentPath, Environment.NewLine + "perk: " + player.Origin + ";" + player.GetField<Vector3>("angles") + ";" + perk);
@@ -315,7 +336,7 @@ namespace INF3
                 File.AppendAllText(_currentPath, Environment.NewLine + "randomperk: " + player.Origin + ";" + player.GetField<Vector3>("angles"));
                 return;
             }
-            if (message=="!gobblegum")
+            if (message == "!gobblegum")
             {
                 player.Call("iprintlnbold", "gobblegum set: " + player.Origin);
                 File.AppendAllText(_currentPath, Environment.NewLine + "gobblegum: " + player.Origin + ";" + player.GetField<Vector3>("angles"));
@@ -354,9 +375,9 @@ namespace INF3
                 File.AppendAllText(_currentPath, Environment.NewLine + "sam: " + player.Origin + ";" + player.GetField<Vector3>("angles"));
                 return;
             }
-            if(message=="!undo")
+            if (message == "!undo")
             {
-                var lines=File.ReadAllLines(_currentPath).ToList();
+                var lines = File.ReadAllLines(_currentPath).ToList();
                 lines.Remove(lines.Last());
                 File.Delete(_currentPath);
                 File.WriteAllLines(_currentPath, lines);

@@ -190,6 +190,8 @@ namespace INF3
                 player.OnNotify("fire_sale", e => FireSale(player));
                 player.OnNotify("bonus_points", e => BonusPoints(player));
                 player.OnNotify("carpenter", e => Carpenter(player));
+                player.OnNotify("burned_out", e => BurnedOut(player));
+                player.OnNotify("killing_time", e => KillingTime(player));
             };
         }
 
@@ -198,13 +200,13 @@ namespace INF3
             if (attacker == null || !attacker.IsPlayer || attacker.GetTeam() == player.GetTeam())
                 return;
 
-            if (attacker.GetTeam() == "axis")
+            if (attacker.GetTeam() == "axis" || !mod.Contains("BULLET"))
             {
                 return;
             }
 
-            var random = Utility.Random.Next(10);
-            var randomequels = Utility.Random.Next(10);
+            var random = Utility.Random.Next(15);
+            var randomequels = Utility.Random.Next(15);
             if (random == randomequels)
             {
                 //PowerUpDrop(player, attacker);
@@ -212,30 +214,31 @@ namespace INF3
                 {
                     case PowerUpType.MaxAmmo:
                         attacker.Notify("max_ammo");
-                        Utility.Println(player.Name + "take PowerUp - ^2Max Ammo");
+                        Utility.Println(attacker.Name + " rolled PowerUp - ^2Max Ammo");
                         break;
                     case PowerUpType.DoublePoints:
                         attacker.Notify("double_points");
-                        Utility.Println(player.Name + "take PowerUp - ^2Double Points");
+                        Utility.Println(attacker.Name + " rolled PowerUp - ^2Double Points");
                         break;
                     case PowerUpType.InstaKill:
                         attacker.Notify("insta_kill");
-                        Utility.Println(player.Name + "take PowerUp - ^2Insta-Kill");
+                        Utility.Println(attacker.Name + " rolled PowerUp - ^2Insta-Kill");
                         break;
                     case PowerUpType.Nuke:
                         attacker.Notify("nuke_drop");
-                        Utility.Println(player.Name + "take PowerUp - ^2Nuke");
+                        Utility.Println(attacker.Name + " rolled PowerUp - ^2Nuke");
                         break;
                     case PowerUpType.FireSale:
                         attacker.Notify("fire_sale");
-                        Utility.Println(player.Name + "take PowerUp - ^2Fire Sale");
+                        Utility.Println(attacker.Name + " rolled PowerUp - ^2Fire Sale");
                         break;
                     case PowerUpType.BonusPoints:
                         attacker.Notify("bonus_points");
-                        Utility.Println(player.Name + "take PowerUp - ^2Max Ammo");
+                        Utility.Println(attacker.Name + " rolled PowerUp - ^2Bonus Points");
                         break;
                     case PowerUpType.Carpenter:
                         attacker.Notify("carpenter");
+                        Utility.Println(attacker.Name + " rolled PowerUp - ^2Carpenter");
                         break;
                 }
             }
@@ -355,6 +358,8 @@ namespace INF3
                     item.Call("givemaxammo", Sharpshooter._firstWeapon.Code);
                     item.Call("givemaxammo", Sharpshooter._mulekickWeapon.Code);
                     item.Call("givemaxammo", Sharpshooter._secondeWeapon.Code);
+                    item.GiveMaxAmmoWeapon("frag_grenade_mp");
+                    item.GiveMaxAmmoWeapon("trophy_mp");
                 }
             }
         }
@@ -417,7 +422,7 @@ namespace INF3
             player.AfterDelay(30000, e =>
             {
                 PowerUpInfo("Fire Sale Off", new Vector3(1, 1, 1));
-                Utility.SetDvar("bouns_fire_sale", 0);
+                Utility.SetDvar("bonus_fire_sale", 0);
             });
         }
 
@@ -446,6 +451,48 @@ namespace INF3
                 }
                 item.HP = item.MaxHP;
             }
+        }
+
+        public void BurnedOut(Entity player)
+        {
+            if (Utility.GetDvar<int>("bonus_burned_out") == 1)
+            {
+                return;
+            }
+
+            PowerUpInfo("Burned Out", new Vector3(1, 1, 0));
+
+            Utility.SetDvar("bonus_burned_out", 1);
+            player.AfterDelay(30000, e =>
+            {
+                Utility.SetDvar("bonus_burned_out", 0);
+                player.GamblerText("Burned Out Off", new Vector3(1, 1, 1), new Vector3(1, 1, 1), 1f, 0);
+            });
+        }
+
+        public void KillingTime(Entity player)
+        {
+            if (Utility.GetDvar<int>("bonus_killing_time") == 1)
+            {
+                return;
+            }
+
+            PowerUpInfo("Killing Time", new Vector3(1, 1, 0));
+
+            Utility.SetDvar("bonus_killing_time", 1);
+            player.AfterDelay(30000, e =>
+            {
+                Utility.SetDvar("bonus_killing_time", 0);
+                player.GamblerText("Killing Time Off", new Vector3(1, 1, 1), new Vector3(1, 1, 1), 1f, 0);
+                foreach (var item in Utility.Players)
+                {
+                    if (item.IsAlive && item.GetTeam() == "axis" && item.GetField<float>("speed") <= 1f)
+                    {
+                        item.Notify("self_exploed");
+                        player.WinCash(100);
+                    }
+                }
+            });
         }
     }
 }

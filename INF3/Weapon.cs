@@ -18,7 +18,6 @@ namespace INF3
             Launcher,
             Special,
             Killstreak,
-            KillstreakHandheld,
             Other,
         }
 
@@ -46,7 +45,7 @@ namespace INF3
         {
             get
             {
-                if (Type == WeaponType.Launcher || Type == WeaponType.Special || Type == WeaponType.Killstreak || Type == WeaponType.KillstreakHandheld || Type == WeaponType.Other)
+                if (Type == WeaponType.Launcher || Type == WeaponType.Special || Type == WeaponType.Killstreak || Type == WeaponType.Other)
                 {
                     return BaseName + "_mp";
                 }
@@ -139,7 +138,7 @@ namespace INF3
             "rpg", "iw5_smaw", "xm25", "m320", "javelin", "stinger",
             "iw5_m60", "iw5_mk46", "iw5_pecheneg", "iw5_sa80", "iw5_mg36",
             "iw5_1887", "iw5_striker", "iw5_aa12", "iw5_usas12", "iw5_spas12", "iw5_ksg",
-            "uav_strike_marker","gl","riotshield",
+            "uav_strike_marker","riotshield",
             "iw5_mp5", "iw5_m9", "iw5_p90", "iw5_pp90m1", "iw5_ump45", "iw5_mp7",
             "iw5_dragunov", "iw5_msr", "iw5_barrett", "iw5_rsass", "iw5_as50", "iw5_l96a1"
         };

@@ -20,6 +20,13 @@ namespace INF3
         public virtual event Action<Entity> UsableThink;
 
         public Entity Entity { get; }
+        public int EntRef
+        {
+            get
+            {
+                return Entity.EntRef;
+            }
+        }
         public Vector3 Origin
         {
             get
@@ -80,6 +87,11 @@ namespace INF3
         public virtual void DoUsableFunc(Entity player)
         {
             UsableThink(player);
+        }
+
+        public virtual int CompareTo(Vector3 player)
+        {
+            return (int)player.DistanceTo(Origin);
         }
     }
 
