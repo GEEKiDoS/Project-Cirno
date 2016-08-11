@@ -253,7 +253,7 @@ namespace INF3
 
             HudElem credits2 = HudElem.CreateFontString(player, "hudbig", 0.6f);
             credits2.SetPoint("CENTER", "BOTTOM", 0, -90);
-            credits2.Call("settext", "Vesion 1.0 IS Beta. Code in: https://github.com/A2ON");
+            credits2.Call("settext", "Vesion 1.0 IS Beta 2. Code in: https://github.com/A2ON");
             credits2.Alpha = 0f;
             credits2.SetField("glowcolor", new Vector3(1f, 0.5f, 1f));
             credits2.GlowAlpha = 1f;

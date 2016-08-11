@@ -39,143 +39,143 @@ namespace INF3
         Carpenter,
     }
 
-    public class PowerUpEntity : IDisposable
-    {
-        private bool disposed = false;
+    //public class PowerUpEntity : IDisposable
+    //{
+    //    private bool disposed = false;
 
-        public PowerUpType Type { get; }
-        public Entity Entity { get; }
-        public Entity FX { get; }
-        public Vector3 Origin { get; }
-        public string Notify
-        {
-            get
-            {
-                switch (Type)
-                {
-                    case PowerUpType.MaxAmmo:
-                        return "max_ammo";
-                    case PowerUpType.DoublePoints:
-                        return "double_points";
-                    case PowerUpType.InstaKill:
-                        return "insta_kill";
-                    case PowerUpType.Nuke:
-                        return "nuke_drop";
-                    case PowerUpType.FireSale:
-                        return "fire_sale";
-                    case PowerUpType.BonusPoints:
-                        return "bonus_points";
-                    default:
-                        return "";
-                }
-            }
-        }
+    //    public PowerUpType Type { get; }
+    //    public Entity Entity { get; }
+    //    public Entity FX { get; }
+    //    public Vector3 Origin { get; }
+    //    public string Notify
+    //    {
+    //        get
+    //        {
+    //            switch (Type)
+    //            {
+    //                case PowerUpType.MaxAmmo:
+    //                    return "max_ammo";
+    //                case PowerUpType.DoublePoints:
+    //                    return "double_points";
+    //                case PowerUpType.InstaKill:
+    //                    return "insta_kill";
+    //                case PowerUpType.Nuke:
+    //                    return "nuke_drop";
+    //                case PowerUpType.FireSale:
+    //                    return "fire_sale";
+    //                case PowerUpType.BonusPoints:
+    //                    return "bonus_points";
+    //                default:
+    //                    return "";
+    //            }
+    //        }
+    //    }
 
-        public PowerUpEntity(PowerUpType type, string model, Vector3 origin, Vector3 angle, int fx)
-        {
-            Type = type;
-            origin = origin += new Vector3(0, 0, 10);
+    //    public PowerUpEntity(PowerUpType type, string model, Vector3 origin, Vector3 angle, int fx)
+    //    {
+    //        Type = type;
+    //        origin = origin += new Vector3(0, 0, 10);
 
-            if (Type == PowerUpType.Nuke)
-            {
-                origin += new Vector3(0, 0, 40);
-            }
+    //        if (Type == PowerUpType.Nuke)
+    //        {
+    //            origin += new Vector3(0, 0, 40);
+    //        }
 
-            Entity = Utility.Spawn("script_model", origin);
-            Entity.Call("setmodel", model);
-            Entity.SetField("angles", angle);
-            FX = Effects.SpawnFx(fx, origin);
-            Origin = origin;
+    //        Entity = Utility.Spawn("script_model", origin);
+    //        Entity.Call("setmodel", model);
+    //        Entity.SetField("angles", angle);
+    //        FX = Effects.SpawnFx(fx, origin);
+    //        Origin = origin;
 
-            PowerUpTimer();
-            PowerUpRotate();
+    //        PowerUpTimer();
+    //        PowerUpRotate();
 
-            Entity.AfterDelay(1000, e =>
-            {
-                PowerUpThink();
-            });
-        }
+    //        Entity.AfterDelay(1000, e =>
+    //        {
+    //            PowerUpThink();
+    //        });
+    //    }
 
-        private void PowerUpThink()
-        {
-            Entity.OnInterval(100, e =>
-            {
-                foreach (var player in Utility.Players)
-                {
-                    if (player.IsAlive && player.GetTeam() == "allies" && player.Origin.DistanceTo(Origin) < 50)
-                    {
-                        player.Notify(Notify);
-                        Dispose();
-                    }
-                }
+    //    private void PowerUpThink()
+    //    {
+    //        Entity.OnInterval(100, e =>
+    //        {
+    //            foreach (var player in Utility.Players)
+    //            {
+    //                if (player.IsAlive && player.GetTeam() == "allies" && player.Origin.DistanceTo(Origin) < 50)
+    //                {
+    //                    player.Notify(Notify);
+    //                    Dispose();
+    //                }
+    //            }
 
-                return !disposed;
-            });
-        }
+    //            return !disposed;
+    //        });
+    //    }
 
-        private void PowerUpTimer()
-        {
-            int timer = 0;
-            Entity.OnInterval(1000, e =>
-            {
-                timer++;
-                if (timer == 20)
-                {
-                    PowerUpTimeoutWarning();
-                    return false;
-                }
+    //    private void PowerUpTimer()
+    //    {
+    //        int timer = 0;
+    //        Entity.OnInterval(1000, e =>
+    //        {
+    //            timer++;
+    //            if (timer == 20)
+    //            {
+    //                PowerUpTimeoutWarning();
+    //                return false;
+    //            }
 
-                return !disposed;
-            });
-        }
+    //            return !disposed;
+    //        });
+    //    }
 
-        private void PowerUpTimeoutWarning()
-        {
-            const int MAX = 20;
+    //    private void PowerUpTimeoutWarning()
+    //    {
+    //        const int MAX = 20;
 
-            bool ishide = false;
-            int num = 0;
-            Entity.OnInterval(500, e =>
-            {
-                if (!ishide)
-                {
-                    Entity.Call("hide");
-                    ishide = true;
-                }
-                else
-                {
-                    Entity.Call("show");
-                    ishide = false;
-                }
-                num++;
+    //        bool ishide = false;
+    //        int num = 0;
+    //        Entity.OnInterval(500, e =>
+    //        {
+    //            if (!ishide)
+    //            {
+    //                Entity.Call("hide");
+    //                ishide = true;
+    //            }
+    //            else
+    //            {
+    //                Entity.Call("show");
+    //                ishide = false;
+    //            }
+    //            num++;
 
-                if (num == MAX)
-                {
-                    Dispose();
-                }
+    //            if (num == MAX)
+    //            {
+    //                Dispose();
+    //            }
 
-                return !disposed;
-            });
-        }
+    //            return !disposed;
+    //        });
+    //    }
 
-        private void PowerUpRotate()
-        {
-            Entity.OnInterval(5000, e =>
-            {
-                Entity.Call("rotateyaw", -360, 5);
+    //    private void PowerUpRotate()
+    //    {
+    //        Entity.OnInterval(5000, e =>
+    //        {
+    //            Entity.Call("rotateyaw", -360, 5);
 
-                return !disposed;
-            });
-        }
+    //            return !disposed;
+    //        });
+    //    }
 
-        public void Dispose()
-        {
-            disposed = true;
+    //    public void Dispose()
+    //    {
+    //        disposed = true;
 
-            FX.Call("delete");
-            Entity.Call("delete");
-        }
-    }
+    //        FX.Call("delete");
+    //        Entity.Call("delete");
+    //    }
+    //}
 
     public class PowerUp : BaseScript
     {
@@ -269,67 +269,7 @@ namespace INF3
         //    }
         //}
 
-        private void PowerUpHudTimer(Entity player, HudElem hud)
-        {
-            int timer = 0;
-            player.OnInterval(1000, e =>
-            {
-                timer++;
-                if (timer == 20)
-                {
-                    float i = 0;
-                    bool ishide = false;
-                    player.OnInterval(500, e1 =>
-                    {
-                        if (!ishide)
-                        {
-                            hud.Call("fadeovertime", 0.5f);
-                            hud.Alpha = 0;
-                            ishide = true;
-                        }
-                        else
-                        {
-                            hud.Call("fadeovertime", 0.5f);
-                            hud.Alpha = 1;
-                            ishide = false;
-                        }
-                        i++;
-                        if (i >= 5)
-                        {
-                            player.OnInterval(250, e2 =>
-                            {
-                                if (!ishide)
-                                {
-                                    hud.Call("fadeovertime", 0.25f);
-                                    hud.Alpha = 0;
-                                    ishide = true;
-                                }
-                                else
-                                {
-                                    hud.Call("fadeovertime", 0.25f);
-                                    hud.Alpha = 1;
-                                    ishide = false;
-                                }
-                                i += 0.5f;
-                                if (i >= 10)
-                                {
-                                    hud.Call("destroy");
-                                    return false;
-                                }
-
-                                return true;
-                            });
-                            return false;
-                        }
-                        return true;
-                    });
-                    return false;
-                }
-                return true;
-            });
-        }
-
-        public void PowerUpInfo(string text, Vector3 color)
+        public static void PowerUpInfo(string text, Vector3 color)
         {
             foreach (var player in Utility.Players)
             {
@@ -466,7 +406,7 @@ namespace INF3
             player.AfterDelay(30000, e =>
             {
                 Utility.SetDvar("bonus_burned_out", 0);
-                player.GamblerText("Burned Out Off", new Vector3(1, 1, 1), new Vector3(1, 1, 1), 1f, 0);
+                PowerUpInfo("Burned Out Off", new Vector3(1, 1, 1));
             });
         }
 
@@ -483,7 +423,7 @@ namespace INF3
             player.AfterDelay(30000, e =>
             {
                 Utility.SetDvar("bonus_killing_time", 0);
-                player.GamblerText("Killing Time Off", new Vector3(1, 1, 1), new Vector3(1, 1, 1), 1f, 0);
+                PowerUpInfo("Killing Time Off", new Vector3(1, 1, 1));
                 foreach (var item in Utility.Players)
                 {
                     if (item.IsAlive && item.GetTeam() == "axis" && item.GetField<float>("speed") <= 1f)

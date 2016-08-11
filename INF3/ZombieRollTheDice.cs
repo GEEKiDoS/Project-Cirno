@@ -52,10 +52,6 @@ namespace INF3
         /// </summary>
         Spas,
         /// <summary>
-        /// 低速僵尸
-        /// </summary>
-        Turtle,
-        /// <summary>
         /// 手持标枪导弹的僵尸
         /// </summary>
         Javelin,
@@ -176,7 +172,7 @@ namespace INF3
         /// </summary>
         PhD,
         /// <summary>
-        /// 可以影响人类技能的僵尸
+        /// 无视人类Juggernog并且死亡后有EMP效果的僵尸
         /// </summary>
         Tesla,
         /// <summary>
@@ -190,7 +186,27 @@ namespace INF3
         /// <summary>
         /// 使用重机枪的僵尸
         /// </summary>
-        DeathMachine
+        DeathMachine,
+        /// <summary>
+        /// 手持自杀式炸弹引爆器的重装兵
+        /// </summary>
+        ISISJuggernaut,
+        /// <summary>
+        /// 手持自杀式炸弹引爆器，并且可以跳的更高的僵尸
+        /// </summary>
+        JetPackISIS,
+        /// <summary>
+        /// 可以跳的更高的重装兵
+        /// </summary>
+        JetPackJuggernaut,
+        /// <summary>
+        /// Tesla重装兵
+        /// </summary>
+        TeslaJuggernaut,
+        /// <summary>
+        /// 同时具有加速跑、喷气包以及增加手刀距离的僵尸
+        /// </summary>
+        Tyrant,
     }
 
     public class RTDItem : IRandom
@@ -223,8 +239,6 @@ namespace INF3
                         return 1;
                     case RollType.Spas:
                         return 1;
-                    case RollType.Turtle:
-                        return 4;
                     case RollType.Javelin:
                         return 1;
                     case RollType.Riotshield:
@@ -248,7 +262,7 @@ namespace INF3
                     case RollType.MSR:
                         return 1;
                     case RollType.ISIS:
-                        return 2;
+                        return 4;
                     case RollType.ZombieIncantation:
                         return 6;
                     case RollType.Tombstone:
@@ -293,6 +307,16 @@ namespace INF3
                         return 1;
                     case RollType.DeathMachine:
                         return 1;
+                    case RollType.ISISJuggernaut:
+                        return 2;
+                    case RollType.JetPackJuggernaut:
+                        return 1;
+                    case RollType.JetPackISIS:
+                        return 2;
+                    case RollType.TeslaJuggernaut:
+                        return 1;
+                    case RollType.Tyrant:
+                        return 1;
                     default:
                         return 0;
                 }
@@ -325,8 +349,6 @@ namespace INF3
                         return "^2AA12";
                     case RollType.Spas:
                         return "^2SPAS-12";
-                    case RollType.Turtle:
-                        return "^1Turtle";
                     case RollType.Javelin:
                         return "^2Javelin";
                     case RollType.Riotshield:
@@ -395,6 +417,16 @@ namespace INF3
                         return "^3CopyCat";
                     case RollType.DeathMachine:
                         return "^3Death Machine";
+                    case RollType.ISISJuggernaut:
+                        return "^3ISIS Juggernaut";
+                    case RollType.JetPackJuggernaut:
+                        return "^3JetPack Juggernaut";
+                    case RollType.JetPackISIS:
+                        return "^3JetPack ISIS Zombie";
+                    case RollType.TeslaJuggernaut:
+                        return "^3Tesla Zombie";
+                    case RollType.Tyrant:
+                        return "^3Tyrant";
                     default:
                         return "";
                 }
@@ -448,9 +480,6 @@ namespace INF3
                     player.TakeWeapon(player.CurrentWeapon);
                     player.GiveMaxAmmoWeapon("iw5_spas12_mp");
                     player.AfterDelay(300, e => player.SwitchToWeaponImmediate("iw5_spas12_mp"));
-                    break;
-                case RollType.Turtle:
-                    player.SetSpeed(0.7f);
                     break;
                 case RollType.Javelin:
                     player.GiveMaxAmmoWeapon("javelin_mp");
@@ -603,6 +632,45 @@ namespace INF3
                     player.GiveMaxAmmoWeapon("iw5_m60jugg_mp_eotechlmg_rof_camo08");
                     player.AfterDelay(300, e => player.SwitchToWeaponImmediate("iw5_m60jugg_mp_eotechlmg_rof_camo08"));
                     break;
+                case RollType.ISISJuggernaut:
+                    player.Call("setmodel", "mp_fullbody_opforce_juggernaut");
+                    player.Call("setviewmodel", "viewhands_juggernaut_opforce");
+                    player.SetField("maxhealth", player.GetField<int>("maxhealth") * 3);
+                    player.Health *= 3;
+                    player.SetField("rtd_isis", 1);
+                    player.TakeWeapon(player.CurrentWeapon);
+                    player.GiveWeapon("c4death_mp");
+                    player.AfterDelay(300, e => player.SwitchToWeaponImmediate("c4death_mp"));
+                    break;
+                case RollType.JetPackJuggernaut:
+                    player.SetField("rtd_isis", 1);
+                    player.TakeWeapon(player.CurrentWeapon);
+                    player.GiveWeapon("c4death_mp");
+                    player.AfterDelay(300, e => player.SwitchToWeaponImmediate("c4death_mp"));
+                    player.Call("setmodel", "mp_fullbody_opforce_juggernaut");
+                    player.Call("setviewmodel", "viewhands_juggernaut_opforce");
+                    player.SetField("maxhealth", player.GetField<int>("maxhealth") * 3);
+                    player.Health *= 3;
+                    break;
+                case RollType.JetPackISIS:
+                    player.SetField("rtd_isis", 1);
+                    player.TakeWeapon(player.CurrentWeapon);
+                    player.GiveWeapon("c4death_mp");
+                    player.AfterDelay(300, e => player.SwitchToWeaponImmediate("c4death_mp"));
+                    player.SetField("rtd_exo", 1);
+                    break;
+                case RollType.TeslaJuggernaut:
+                    player.Call("setmodel", "mp_fullbody_opforce_juggernaut");
+                    player.Call("setviewmodel", "viewhands_juggernaut_opforce");
+                    player.SetField("maxhealth", player.GetField<int>("maxhealth") * 3);
+                    player.Health *= 3;
+                    player.SetField("rtd_tesla", 1);
+                    break;
+                case RollType.Tyrant:
+                    player.SetSpeed(1.5f);
+                    player.SetField("rtd_exo", 1);
+                    player.SetPerk("specialty_extendedmelee", true, true);
+                    break;
             }
         }
 
@@ -641,12 +709,9 @@ namespace INF3
             new RTDItem(RollType.GodMode),
             new RTDItem(RollType.IceZombie),
             new RTDItem(RollType.ISIS),
-            new RTDItem(RollType.Javelin),
             new RTDItem(RollType.JetPack),
             new RTDItem(RollType.Juggernaut),
-            new RTDItem(RollType.KingOfJuggernaut),
             new RTDItem(RollType.Late),
-            new RTDItem(RollType.MysteryZombie),
             new RTDItem(RollType.Negative),
             new RTDItem(RollType.Nightvision),
             new RTDItem(RollType.Nothing),
@@ -656,53 +721,55 @@ namespace INF3
             new RTDItem(RollType.Somker),
             new RTDItem(RollType.Spider),
             new RTDItem(RollType.StaminUp),
-            new RTDItem(RollType.Tank),
-            new RTDItem(RollType.Tesla),
             new RTDItem(RollType.ThrowingKnife),
             new RTDItem(RollType.Tombstone),
-            new RTDItem(RollType.Turtle),
             new RTDItem(RollType.WalkingDeath),
             new RTDItem(RollType.ZombieIncantation),
         };
 
-        private List<RTDItem> _rollagain1 = new List<RTDItem>
+        private List<RTDItem> _super = new List<RTDItem>
         {
             new RTDItem(RollType.Boomer),
-            new RTDItem(RollType.FlagZombie),
-            new RTDItem(RollType.IceZombie),
-            new RTDItem(RollType.JetPack),
-            new RTDItem(RollType.MysteryZombie),
-            new RTDItem(RollType.PhD),
-            new RTDItem(RollType.Somker),
-            new RTDItem(RollType.Spider),
-            new RTDItem(RollType.StaminUp),
-            new RTDItem(RollType.ZombieIncantation),
-            new RTDItem(RollType.Turtle),
-            new RTDItem(RollType.Tesla),
-            new RTDItem(RollType.KingOfJuggernaut),
-            new RTDItem(RollType.Juggernaut),
-            new RTDItem(RollType.Tank),
-        };
-
-        private List<RTDItem> _rollagain2 = new List<RTDItem>
-        {
-            new RTDItem(RollType.Darkness),
-            new RTDItem(RollType.Die),
             new RTDItem(RollType.ExtendedMelee),
-            new RTDItem(RollType.Fallout),
+            new RTDItem(RollType.FlagZombie),
             new RTDItem(RollType.GodMode),
             new RTDItem(RollType.ISIS),
             new RTDItem(RollType.Javelin),
+            new RTDItem(RollType.JetPack),
+            new RTDItem(RollType.Juggernaut),
+            new RTDItem(RollType.KingOfJuggernaut),
+            new RTDItem(RollType.MysteryZombie),
+            new RTDItem(RollType.PhD),
+            new RTDItem(RollType.Riotshield),
+            new RTDItem(RollType.Somker),
+            new RTDItem(RollType.Spider),
+            new RTDItem(RollType.StaminUp),
+            new RTDItem(RollType.Tank),
+            new RTDItem(RollType.Tesla),
+            new RTDItem(RollType.ThrowingKnife),
+            new RTDItem(RollType.Tombstone),
+            new RTDItem(RollType.ZombieIncantation),
+            new RTDItem(RollType.ISISJuggernaut),
+            new RTDItem(RollType.JetPackISIS),
+            new RTDItem(RollType.JetPackJuggernaut),
+            new RTDItem(RollType.TeslaJuggernaut),
+            new RTDItem(RollType.Tyrant),
+        };
+
+        private List<RTDItem> _burnedout = new List<RTDItem>
+        {
+            new RTDItem(RollType.Darkness),
+            new RTDItem(RollType.Die),
+            new RTDItem(RollType.Fallout),
+            new RTDItem(RollType.FlagZombie),
+            new RTDItem(RollType.IceZombie),
+            new RTDItem(RollType.Late),
             new RTDItem(RollType.Negative),
             new RTDItem(RollType.Nightvision),
             new RTDItem(RollType.Nothing),
-            new RTDItem(RollType.Late),
             new RTDItem(RollType.OneHitKill),
-            new RTDItem(RollType.Riotshield),
-            new RTDItem(RollType.FlagZombie),
-            new RTDItem(RollType.ThrowingKnife),
-            new RTDItem(RollType.Tombstone),
             new RTDItem(RollType.WalkingDeath),
+            new RTDItem(RollType.ZombieIncantation),
         };
 
         private List<RTDItem> _first = new List<RTDItem>
@@ -723,6 +790,11 @@ namespace INF3
             new RTDItem(RollType.KingOfJuggernaut),
             new RTDItem(RollType.MysteryZombie),
             new RTDItem(RollType.PhD),
+            new RTDItem(RollType.ISISJuggernaut),
+            new RTDItem(RollType.JetPackISIS),
+            new RTDItem(RollType.JetPackJuggernaut),
+            new RTDItem(RollType.TeslaJuggernaut),
+            new RTDItem(RollType.Tyrant),
         };
 
         public ZombieRollTheDice()
@@ -766,15 +838,10 @@ namespace INF3
         {
             if (player.GetTeam() == "axis")
             {
-                if (player.GetField<int>("rtd_canroll") == 1)
-                {
-                    player.AfterDelay(50, e => RandomByDeadstreak(player));
-                }
                 if (player.GetField<int>("rtd_tombstone") == 1)
                 {
                     player.Call("setorigin", player.GetField<Vector3>("rtd_tombstoneorigin"));
                 }
-                player.SetField("rtd_canroll", 1);
                 player.SetField("zombie_incantation", 0);
                 player.SetField("rtd_flag", 0);
                 player.SetField("rtd_king", 0);
@@ -790,8 +857,17 @@ namespace INF3
                 player.SetField("rtd_tesla", 0);
                 player.SetField("rtd_tombstone", 0);
                 player.SetField("rtd_tombstoneorigin", new Vector3());
+                if (player.GetField<int>("rtd_canroll") == 1)
+                {
+                    RandomByDeadstreak(player);
+                }
+                player.SetField("rtd_canroll", 1);
 
-                player.SetField("onhitacid", 0);
+                if (Utility.GetDvar<int>("zombie_double_health") == 1)
+                {
+                    player.SetField("maxhealth", player.GetField<int>("maxhealth") * 2);
+                    player.Health *= 2;
+                }
             }
         }
 
@@ -805,48 +881,25 @@ namespace INF3
             {
                 if (Utility.GetDvar<int>("bonus_burned_out") == 1)
                 {
-                    DoRandom(player, _normal);
-                    return;
+                    DoRandom(player, _burnedout);
                 }
-                if (player.GetField<int>("deathstreak") < 10)
+                else if (player.GetField<int>("deathstreak") < 10)
                 {
                     DoRandom(player, _normal);
                 }
-                else if (player.GetField<int>("deathstreak") >= 15)
+                else if (player.GetField<int>("deathstreak") >= 10)
                 {
-                    DoubleBuff(player);
+                    DoRandom(player, _super);
                 }
             }
-        }
-
-        public void DoubleBuff(Entity player)
-        {
-            var roll1 = Utility.RandomByWeight(_rollagain1);
-            var roll2 = Utility.RandomByWeight(_rollagain2);
-
-            roll1.DoRolled(player);
-            PrintRollName(player, roll1, true);
-            AfterDelay(1000, () => 
-            {
-                roll2.DoRolled(player);
-                PrintRollName(player, roll2);
-            });
         }
 
         public void DoRandom(Entity player, List<RTDItem> _rtditems)
         {
             var type = Utility.RandomByWeight(_rtditems);
 
-            if (Utility.GetDvar<int>("bonus_burned_out") == 1 && !type.FullName.StartsWith("^1"))
-            {
-                DoRandom(player, _rtditems);
-                return;
-            }
-            else
-            {
-                type.DoRolled(player);
-                PrintRollName(player, type);
-            }
+            type.DoRolled(player);
+            PrintRollName(player, type);
         }
 
         private void PrintRollName(Entity player, RTDItem item, bool rollagain = false)
@@ -936,7 +989,11 @@ namespace INF3
                 Effects.PlayFx(Effects.smallempfx, player.Origin);
                 foreach (var item in PerkColaFunction.GetClosingZombies(player))
                 {
-                    item.SetSpeed(0.5f);
+                    if (item.GetField<float>("speed") >= 1f)
+                    {
+                        item.SetSpeed(0.5f);
+                        item.AfterDelay(5000, e => item.SetSpeed(1));
+                    }
                 }
             }
             else if (player.GetField<int>("rtd_mystery") == 1)
@@ -980,7 +1037,10 @@ namespace INF3
             {
                 return;
             }
-
+            if (attacker.GetTeam() == "axis" && attacker.GetField<int>("rtd_tesla") == 1 && player.GetField<int>("perk_cherry") != 1 && mod == "MOD_MELEE")
+            {
+                player.Health = 3;
+            }
             if (player.GetTeam() == "axis" && player.GetField<int>("rtd_phd") == 1 && (mod == "MOD_EXPLOSIVE" || mod == "MOD_PROJECTILE_SPLASH" || mod == "MOD_GRENADE_SPLASH"))
             {
                 player.Health = 1000;

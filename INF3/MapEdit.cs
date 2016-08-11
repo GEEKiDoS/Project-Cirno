@@ -173,7 +173,7 @@ namespace INF3
             laptop.Call("setmodel", "com_laptop_2_open");
             bool flag = true;
             laptop.OnNotify("stop_rotate", e => flag = false);
-            laptop.OnInterval(100, e =>
+            laptop.OnInterval(7000, e =>
             {
                 laptop.Call("rotateyaw", -360, 7);
                 return flag;
@@ -218,7 +218,7 @@ namespace INF3
         {
             Utility.Spawn("script_model", enter).Call("setmodel", "weapon_scavenger_grenadebag");
             Utility.Spawn("script_model", exit).Call("setmodel", "weapon_oma_pack");
-            OnInterval(100, delegate
+            OnInterval(100, () =>
             {
                 foreach (Entity entity in Utility.Players)
                 {

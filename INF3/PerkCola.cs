@@ -33,7 +33,6 @@ namespace INF3
         /// </summary>
         public static List<PerkCola> perkcolas = new List<PerkCola>
         {
-            new PerkCola(PerkColaType.QUICK_REVIVE),
             new PerkCola(PerkColaType.SPEED_COLA),
             new PerkCola(PerkColaType.JUGGERNOG),
             new PerkCola(PerkColaType.STAMIN_UP),
@@ -44,7 +43,6 @@ namespace INF3
             new PerkCola(PerkColaType.ELECTRIC_CHERRY),
             new PerkCola(PerkColaType.WIDOW_S_WINE),
             new PerkCola(PerkColaType.VULTURE_AID),
-            new PerkCola(PerkColaType.TOMBSTONE),
         };
 
         public PerkColaType Type { get; }
@@ -237,8 +235,6 @@ namespace INF3
             {
                 switch (Type)
                 {
-                    case PerkColaType.QUICK_REVIVE:
-                        return 10;
                     case PerkColaType.SPEED_COLA:
                         return 3;
                     case PerkColaType.JUGGERNOG:
@@ -259,8 +255,6 @@ namespace INF3
                         return 1;
                     case PerkColaType.VULTURE_AID:
                         return 12;
-                    case PerkColaType.TOMBSTONE:
-                        return 10;
                     default:
                         return 0;
                 }
@@ -278,6 +272,7 @@ namespace INF3
             {
                 case PerkColaType.QUICK_REVIVE:
                     player.SetField("perk_revive", 1);
+                    player.SetField("hasrevive", 1);
                     break;
                 case PerkColaType.SPEED_COLA:
                     player.SetField("perk_speedcola", 1);
@@ -291,8 +286,8 @@ namespace INF3
                     player.SetField("oldmodel", player.GetField<string>("model"));
                     player.Call("setmodel", "mp_fullbody_ally_juggernaut");
                     player.Call("setviewmodel", "viewhands_juggernaut_ally");
-                    player.SetField("maxhealth", 300);
-                    player.Health = 300;
+                    player.SetField("maxhealth", 200);
+                    player.Health = 200;
                     break;
                 case PerkColaType.STAMIN_UP:
                     player.SetField("perk_staminup", 1);
@@ -338,6 +333,7 @@ namespace INF3
                     break;
                 case PerkColaType.TOMBSTONE:
                     player.SetField("perk_tombstone", 1);
+                    player.SetField("hastombstone", 1);
                     break;
             }
         }

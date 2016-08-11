@@ -47,6 +47,7 @@ namespace INF3
             Utility.PreCacheModel("com_laptop_2_open");
 
             Utility.SetDvar("scr_aiz_power", 1);
+            Utility.SetDvar("zombie_double_health", 0);
 
             //Power-Up
             Utility.SetDvar("bonus_double_points", 0);
@@ -83,12 +84,17 @@ namespace INF3
                 player.SetField("aiz_cash", 500);
                 player.SetField("aiz_point", 0);
                 player.SetField("isgambling", 0);
+                player.SetField("hasrevive", 0);
+                player.SetField("hastombstone", 0);
                 OnSpawned(player);
                 player.SpawnedPlayer += () => OnSpawned(player);
                 player.OnInterval(100, ent =>
                 {
-                    player.Call("setmovespeedscale", player.GetField<float>("speed"));
-                    return player.IsPlayer;
+                    if (player.HasField("speed") && player.GetField<float>("speed") != 0)
+                    {
+                        player.Call("setmovespeedscale", player.GetField<float>("speed"));
+                    }
+                    return player.IsPlayer && Players.Contains(player);
                 });
                 #region Magic Weapons
 
@@ -171,7 +177,7 @@ namespace INF3
                 var welcomemessages = new List<string>
                 {
                     "Welcome " + player.Name,
-                    "Buffashion Infect v1.0 IS Beta",
+                    "Buffashion Infect v1.0 IS Beta 2",
                     "Create by A2ON.",
                     "Source code in: https://github.com/A2ON/",
                     "Current Map: "+Utility.MapName,
@@ -190,6 +196,7 @@ namespace INF3
             player.SetField("speed", 1f);
             player.SetField("usingteleport", 0);
             player.SetField("xpUpdateTotal", 0);
+            player.SetField("onhitacid", 0);
             player.Call("clearperks");
             if (player.HasPerkCola(PerkColaType.TOMBSTONE))
             {
@@ -197,7 +204,7 @@ namespace INF3
             }
             else
             {
-                player.ResetPerkCola(); 
+                player.ResetPerkCola();
             }
             if (player.GetTeam() == "allies")
             {
@@ -292,7 +299,11 @@ namespace INF3
 
                 if (Utility.GetDvar<int>("bonus_killing_time") == 1)
                 {
-                    player.SetSpeed(0.5f);
+                    if (player.GetField<float>("speed") >= 1f)
+                    {
+                        player.SetSpeed(0.5f);
+                        player.AfterDelay(5000, e => player.SetSpeed(1));
+                    }
                 }
             }
         }
@@ -350,6 +361,10 @@ namespace INF3
             }
             else
             {
+                if (mod.Contains("BULLET"))
+                {
+                    attacker.Notify("self_exploed");
+                }
                 if (player.GetField<int>("incantation") == 1)
                 {
                     attacker.Health = 1000;
