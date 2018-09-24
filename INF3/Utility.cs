@@ -23,7 +23,7 @@ namespace INF3
         /// <summary>
         /// 获取服务器的当前地图，此字段为只读
         /// </summary>
-        public static readonly string MapName = Function.Call<string>("getdvar", "mapname");
+        public static readonly string MapName = CallWrapper.Call<string>("getdvar", "mapname");
 
         /// <summary>
         /// 获取服务器内所有玩家，并返回包含玩家实体的集合
@@ -66,7 +66,7 @@ namespace INF3
             get
             {
                 Function.SetEntRef(-1);
-                return Function.Call<int>("gettime");
+                return CallWrapper.Call<int>("gettime");
             }
         }
 
@@ -112,7 +112,7 @@ namespace INF3
         public static Entity Spawn(string spawntype, Vector3 origin)
         {
             Function.SetEntRef(-1);
-            return Function.Call<Entity>("spawn", spawntype, origin);
+            return CallWrapper.Call<Entity>("spawn", spawntype, origin);
         }
 
         /// <summary>
@@ -122,7 +122,7 @@ namespace INF3
         public static void PreCacheShader(string shader)
         {
             Function.SetEntRef(-1);
-            Function.Call("PreCacheShader", shader);
+            CallWrapper.Call("PreCacheShader", shader);
         }
 
         /// <summary>
@@ -132,7 +132,7 @@ namespace INF3
         public static void PreCacheModel(string model)
         {
             Function.SetEntRef(-1);
-            Function.Call("PreCacheModel", model);
+            CallWrapper.Call("PreCacheModel", model);
         }
 
         /// <summary>
@@ -143,7 +143,7 @@ namespace INF3
         public static void SetDvar(string dvar, Parameter value)
         {
             Function.SetEntRef(-1);
-            Function.Call("setdvar", dvar, value);
+            CallWrapper.Call("setdvar", dvar, value);
         }
 
         /// <summary>
@@ -157,22 +157,22 @@ namespace INF3
             if (typeof(T) == typeof(int))
             {
                 Function.SetEntRef(-1);
-                return (T)Convert.ChangeType(Function.Call<int>("getdvarint", dvar), typeof(T));
+                return (T)Convert.ChangeType(CallWrapper.Call<int>("getdvarint", dvar), typeof(T));
             }
             else if (typeof(T) == typeof(float) || typeof(T) == typeof(double))
             {
                 Function.SetEntRef(-1);
-                return (T)Convert.ChangeType(Function.Call<float>("getdvarfloat", dvar), typeof(T));
+                return (T)Convert.ChangeType(CallWrapper.Call<float>("getdvarfloat", dvar), typeof(T));
             }
             else if (typeof(T) == typeof(Vector3))
             {
                 Function.SetEntRef(-1);
-                return (T)Convert.ChangeType(Function.Call<Vector3>("getdvarvector", dvar), typeof(T));
+                return (T)Convert.ChangeType(CallWrapper.Call<Vector3>("getdvarvector", dvar), typeof(T));
             }
             else if (typeof(T) == typeof(string))
             {
                 Function.SetEntRef(-1);
-                return (T)Convert.ChangeType(Function.Call<string>("getdvar", dvar), typeof(T));
+                return (T)Convert.ChangeType(CallWrapper.Call<string>("getdvar", dvar), typeof(T));
             }
             else
             {
@@ -416,7 +416,7 @@ namespace INF3
         public static void PrintlnBold(string message)
         {
             Function.SetEntRef(-1);
-            Function.Call("iprintlnbold", message);
+            CallWrapper.Call("iprintlnbold", message);
         }
 
         /// <summary>
@@ -436,7 +436,7 @@ namespace INF3
         public static void Println(string message)
         {
             Function.SetEntRef(-1);
-            Function.Call("iprintln", message);
+            CallWrapper.Call("iprintln", message);
         }
 
         /// <summary>
@@ -499,7 +499,7 @@ namespace INF3
         public static void GiveMaxAmmoWeapon(this Entity player, string weapon)
         {
             player.GiveWeapon(weapon);
-            player.Call("givemaxammo", weapon);
+            player.GiveMaxAmmo( weapon);
         }
 
         /// <summary>
@@ -512,7 +512,7 @@ namespace INF3
         /// 击杀玩家，并设置击杀标示为自杀
         /// </summary>
         /// <param name="player">指定玩家</param>
-        public static void Suicide(this Entity player) => player.AfterDelay(100, e => player.Call("suicide"));
+        public static void Suicide(this Entity player) => BaseScript.AfterDelay(100, () => player.Call("suicide"));
 
         /// <summary>
         /// 删除指定玩家的指定技能，注意该技能是游戏内技能而不是Perk-a-Cola
@@ -527,7 +527,7 @@ namespace INF3
         /// <param name="player">指定玩家</param>
         /// <param name="shock">特效代码</param>
         /// <param name="time">持续时间</param>
-        public static void ShellShock(this Entity player, string shock, int time) => player.Call("shellshock", shock, time);
+        public static void ShellShock(this Entity player, string shock, int time) => player.ShellShock( shock, time);
 
         #endregion
 
@@ -600,9 +600,9 @@ namespace INF3
                 var list = player.GetPerkColaHud();
                 foreach (var item in list)
                 {
-                    if (item.GetField<PerkColaType>("perk") == type)
+                    if (item.GetField("perk").As<PerkColaType>() == type)
                     {
-                        item.Call("fadeovertime", 0.5f);
+                        item.FadeOverTime(0.5f);
                         item.Alpha = 0;
                         break;
                     }
@@ -762,7 +762,7 @@ namespace INF3
             {
                 foreach (var item in player.GetPerkColaHud())
                 {
-                    item.Call("destroy");
+                    item.Destroy();
                 }
             }
 

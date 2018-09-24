@@ -295,9 +295,9 @@ namespace INF3
             {
                 if (item.IsAlive && item.GetTeam() == "allies")
                 {
-                    item.Call("givemaxammo", Sharpshooter._firstWeapon.Code);
-                    item.Call("givemaxammo", Sharpshooter._mulekickWeapon.Code);
-                    item.Call("givemaxammo", Sharpshooter._secondeWeapon.Code);
+                    item.GiveMaxAmmo( Sharpshooter._firstWeapon.Code);
+                    item.GiveMaxAmmo( Sharpshooter._mulekickWeapon.Code);
+                    item.GiveMaxAmmo( Sharpshooter._secondeWeapon.Code);
                     item.GiveMaxAmmoWeapon("frag_grenade_mp");
                     item.GiveMaxAmmoWeapon("trophy_mp");
                 }
@@ -313,7 +313,7 @@ namespace INF3
 
             PowerUpInfo("Double Points", new Vector3(0, 1, 0));
             Utility.SetDvar("bonus_double_points", 1);
-            player.AfterDelay(30000, e =>
+            BaseScript.AfterDelay(30000, () =>
             {
                 PowerUpInfo("Double Points Off", new Vector3(1, 1, 1));
                 Utility.SetDvar("bonus_double_points", 0);
@@ -329,7 +329,7 @@ namespace INF3
 
             PowerUpInfo("Insta-Kill", new Vector3(0, 1, 0));
             Utility.SetDvar("bonus_insta_kill", 1);
-            player.AfterDelay(30000, e =>
+            BaseScript.AfterDelay(30000, () =>
             {
                 PowerUpInfo("Insta-Kill Off", new Vector3(1, 1, 1));
                 Utility.SetDvar("bonus_insta_kill", 0);
@@ -359,7 +359,7 @@ namespace INF3
 
             PowerUpInfo("Fire Sale", new Vector3(0, 1, 0));
             Utility.SetDvar("bonus_fire_sale", 1);
-            player.AfterDelay(30000, e =>
+            BaseScript.AfterDelay(30000, () =>
             {
                 PowerUpInfo("Fire Sale Off", new Vector3(1, 1, 1));
                 Utility.SetDvar("bonus_fire_sale", 0);
@@ -403,7 +403,7 @@ namespace INF3
             PowerUpInfo("Burned Out", new Vector3(1, 1, 0));
 
             Utility.SetDvar("bonus_burned_out", 1);
-            player.AfterDelay(30000, e =>
+            BaseScript.AfterDelay(30000, () =>
             {
                 Utility.SetDvar("bonus_burned_out", 0);
                 PowerUpInfo("Burned Out Off", new Vector3(1, 1, 1));
@@ -420,7 +420,7 @@ namespace INF3
             PowerUpInfo("Killing Time", new Vector3(1, 1, 0));
 
             Utility.SetDvar("bonus_killing_time", 1);
-            player.AfterDelay(30000, e =>
+            BaseScript.AfterDelay(30000, () =>
             {
                 Utility.SetDvar("bonus_killing_time", 0);
                 PowerUpInfo("Killing Time Off", new Vector3(1, 1, 1));

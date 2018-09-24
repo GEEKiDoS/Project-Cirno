@@ -18,7 +18,7 @@ namespace INF3
 
         public static void InitGambleTextHud(this Entity player)
         {
-            GambleTextHuds[player.EntRef] = HudElem.NewClientHudElem(player);
+            GambleTextHuds[player.EntRef] = GSCFunctions.NewClientHudElem(player);
         }
 
         public static void InitPerkHud(this Entity player)
@@ -28,17 +28,17 @@ namespace INF3
 
         public static void InitTextPopup(this Entity player)
         {
-            TextPopupHuds[player.EntRef] = HudElem.NewClientHudElem(player);
+            TextPopupHuds[player.EntRef] = GSCFunctions.NewClientHudElem(player);
         }
 
         public static void InitTextPopup2(this Entity player)
         {
-            TextPopup2Huds[player.EntRef] = HudElem.NewClientHudElem(player);
+            TextPopup2Huds[player.EntRef] = GSCFunctions.NewClientHudElem(player);
         }
 
         public static void InitScorePopup(this Entity player)
         {
-            ScorePopupHuds[player.EntRef] = HudElem.NewClientHudElem(player);
+            ScorePopupHuds[player.EntRef] = GSCFunctions.NewClientHudElem(player);
         }
 
         public static void AddPerkHud(this Entity player, HudElem hud)
@@ -75,9 +75,9 @@ namespace INF3
         {
             HudElem hud = GambleTextHuds[player.EntRef];
 
-            hud.Call("destroy");
-
-            hud = HudElem.CreateFontString(player, "hudbig", 2);
+            hud.Destroy();
+            
+            hud = HudElem.CreateFontString(player, HudElem.Fonts.HudBig, 2);
             var ent = hud.Entity;
             hud.SetPoint("CENTERMIDDLE", "CENTERMIDDLE", 0, 0);
             hud.SetText(text);
@@ -86,28 +86,28 @@ namespace INF3
             hud.Alpha = 0;
             hud.GlowAlpha = glowIntensity;
 
-            hud.ChangeFontScaleOverTime(0.25f, 0.75f);
-            hud.Call("FadeOverTime", 0.25f);
+            hud.ChangeFontScaleOverTime(0.75f);
+            hud.FadeOverTime( 0.25f);
             hud.Alpha = intensity;
 
-            player.AfterDelay(250, e => player.Call("playLocalSound", "mp_bonus_end"));
+            BaseScript.AfterDelay(250, () => player.Call("playLocalSound", "mp_bonus_end"));
 
-            player.AfterDelay(3000, e =>
+            BaseScript.AfterDelay(3000, () =>
             {
                 if (hud.Entity == ent)
                 {
-                    hud.ChangeFontScaleOverTime(0.25f, 2f);
-                    hud.Call("FadeOverTime", 0.25f);
+                    hud.ChangeFontScaleOverTime(2f);
+                    hud.FadeOverTime( 0.25f);
                     hud.Alpha = 0;
                 }
             });
 
-            player.AfterDelay(4000, e =>
+            BaseScript.AfterDelay(4000, () =>
             {
                 if (hud.Entity == ent)
                 {
-                    hud.ChangeFontScaleOverTime(0.25f, 2f);
-                    hud.Call("FadeOverTime", 0.25f);
+                    hud.ChangeFontScaleOverTime(2f);
+                    hud.FadeOverTime( 0.25f);
                     hud.Alpha = 0;
                 }
             });
@@ -119,9 +119,9 @@ namespace INF3
 
             foreach (var item in messages)
             {
-                player.AfterDelay((messages.IndexOf(item) + 1) * 500, e =>
+                BaseScript.AfterDelay((messages.IndexOf(item) + 1) * 500, () =>
                 {
-                    var hud = HudElem.CreateFontString(player, "objective", 1.5f);
+                    var hud = HudElem.CreateFontString(player, HudElem.Fonts.Objective, 1.5f);
                     hud.SetPoint("TOPMIDDLE", "TOPMIDDLE", 0, 45 + messages.IndexOf(item) * 15);
                     hud.FontScale = 6;
                     hud.Color = color;
@@ -130,29 +130,29 @@ namespace INF3
                     hud.GlowColor = glowColor;
                     hud.GlowAlpha = glowIntensity;
 
-                    hud.ChangeFontScaleOverTime(0.2f, 1.5f);
-                    hud.Call("fadeovertime", 0.2f);
+                    hud.ChangeFontScaleOverTime( 1.5f);
+                    hud.FadeOverTime(0.2f);
                     hud.Alpha = intensity;
 
                     list.Add(hud);
                 });
             }
-            player.AfterDelay(messages.Count * 500 + 4000, e =>
+            BaseScript.AfterDelay(messages.Count * 500 + 4000, () =>
             {
                 foreach (var item in list)
                 {
-                    player.AfterDelay((list.IndexOf(item) + 1) * 500, en =>
+                    BaseScript.AfterDelay((list.IndexOf(item) + 1) * 500, () =>
                     {
-                        item.ChangeFontScaleOverTime(0.2f, 4.5f);
-                        item.Call("fadeovertime", 0.2f);
+                        item.ChangeFontScaleOverTime(4.5f);
+                        item.FadeOverTime( 0.2f);
                         item.Alpha = 0;
                         if (list.IndexOf(item) == list.Count - 1)
                         {
-                            player.AfterDelay(1000, ex =>
+                            BaseScript.AfterDelay(1000, () =>
                             {
                                 foreach (var item2 in list)
                                 {
-                                    item2.Call("destroy");
+                                    item2.Destroy();
                                 }
                             });
                         }
@@ -166,16 +166,17 @@ namespace INF3
             int perksAmount = player.PerkColasCount() - 1;
             int MultiplyTimes = 28 * perksAmount;
 
-            var hudshader = HudElem.NewClientHudElem(player);
-            hudshader.AlignX = "center";
-            hudshader.VertAlign = "middle";
-            hudshader.AlignY = "middle";
-            hudshader.HorzAlign = "center";
+            var hudshader = GSCFunctions.NewClientHudElem(player);
+            
+            hudshader.AlignX = HudElem.XAlignments.Center;
+            hudshader.VertAlign = HudElem.VertAlignments.Middle;
+            hudshader.AlignY = HudElem.YAlignments.Middle;
+            hudshader.HorzAlign = HudElem.HorzAlignments.Center;
             hudshader.X = -300 + MultiplyTimes;
             hudshader.Y = 180;
             hudshader.Foreground = true;
             hudshader.SetShader(perk.Icon, 25, 25);
-            hudshader.Call("fadeovertime", 0.5f);
+            hudshader.FadeOverTime( 0.5f);
             hudshader.Alpha = 1;
             hudshader.SetField("perk", new Parameter(perk.Type));
 
@@ -188,12 +189,12 @@ namespace INF3
             int perksAmount = player.PerkColasCount() - 1;
             int MultiplyTimes = 28 * perksAmount;
 
-            var hudtext = HudElem.NewClientHudElem(player);
-            hudtext.AlignX = "center";
-            hudtext.VertAlign = "middle";
-            hudtext.AlignY = "middle";
-            hudtext.HorzAlign = "center";
-            hudtext.Font = "objective";
+            var hudtext = GSCFunctions.NewClientHudElem(player);
+            hudtext.AlignX = HudElem.XAlignments.Center;
+            hudtext.VertAlign = HudElem.VertAlignments.Middle;
+            hudtext.AlignY = HudElem.YAlignments.Middle;
+            hudtext.HorzAlign = HudElem.HorzAlignments.Center;
+            hudtext.Font = HudElem.Fonts.Objective;
             hudtext.FontScale = 1.5f;
             hudtext.X = 0;
             hudtext.Y = 0;
@@ -202,11 +203,11 @@ namespace INF3
             hudtext.Alpha = 0;
             hudtext.SetText(perk.HudName);
 
-            var hudshader = HudElem.NewClientHudElem(player);
-            hudshader.AlignX = "center";
-            hudshader.VertAlign = "middle";
-            hudshader.AlignY = "middle";
-            hudshader.HorzAlign = "center";
+            var hudshader = GSCFunctions.NewClientHudElem(player);
+            hudshader.AlignX = HudElem.XAlignments.Center;
+            hudshader.VertAlign = HudElem.VertAlignments.Middle;
+            hudshader.AlignY = HudElem.YAlignments.Middle;
+            hudshader.HorzAlign = HudElem.HorzAlignments.Center;
             hudshader.X = 0;
             hudshader.Y = 0;
             hudshader.Foreground = true;
@@ -214,28 +215,28 @@ namespace INF3
             hudshader.Alpha = 1;
             hudshader.SetField("perk", new Parameter(perk.Type));
 
-            player.AfterDelay(300, e =>
+            BaseScript.AfterDelay(300, () =>
             {
-                hudshader.Call("moveovertime", 0.5f);
+                hudshader.MoveOverTime( 0.5f);
                 hudshader.X = -200;
             });
-            player.AfterDelay(700, e =>
+            BaseScript.AfterDelay(700, () =>
             {
                 player.Call("setblurforplayer", 0, 0.3f);
                 hudtext.Alpha = 1;
             });
-            player.AfterDelay(3700, e =>
+            BaseScript.AfterDelay(3700, () =>
             {
-                hudtext.Call("fadeovertime", 0.25f);
+                hudtext.FadeOverTime( 0.25f);
                 hudtext.Alpha = 0;
-                hudshader.Call("scaleovertime", 1, 25, 25);
-                hudshader.Call("moveovertime", 1);
+                hudshader.ScaleOverTime( 1, 25, 25);
+                hudshader.MoveOverTime( 1);
                 hudshader.X = -300 + MultiplyTimes;
                 hudshader.Y = 180;
             });
-            player.AfterDelay(4700, e =>
+            BaseScript.AfterDelay(4700, () =>
             {
-                hudtext.Call("destroy");
+                hudtext.Destroy();
 
             });
 
@@ -244,16 +245,16 @@ namespace INF3
 
         public static void Credits(this Entity player)
         {
-            HudElem credits = HudElem.CreateFontString(player, "hudbig", 1.0f);
+            HudElem credits = HudElem.CreateFontString(player, HudElem.Fonts.HudBig, 1.0f);
             credits.SetPoint("CENTER", "BOTTOM", 0, -70);
-            credits.Call("settext", "Buffashion Infect");
+            credits.SetText( "Buffashion Infect");
             credits.Alpha = 0f;
             credits.SetField("glowcolor", new Vector3(1f, 0.5f, 1f));
             credits.GlowAlpha = 1f;
 
-            HudElem credits2 = HudElem.CreateFontString(player, "hudbig", 0.6f);
+            HudElem credits2 = HudElem.CreateFontString(player, HudElem.Fonts.HudBig, 0.6f);
             credits2.SetPoint("CENTER", "BOTTOM", 0, -90);
-            credits2.Call("settext", "Vesion 1.0 IS Beta 2. Code in: https://github.com/A2ON");
+            credits2.SetText( "Vesion 1.0 IS Beta 2. Code in: https://github.com/A2ON");
             credits2.Alpha = 0f;
             credits2.SetField("glowcolor", new Vector3(1f, 0.5f, 1f));
             credits2.GlowAlpha = 1f;
@@ -280,21 +281,21 @@ namespace INF3
 
             if (hud == null)
             {
-                hud = HudElem.NewClientHudElem(player);
+                hud = GSCFunctions.NewClientHudElem(player);
             }
-            hud.Call("destroy");
+            hud.Destroy();
 
-            hud = HudElem.CreateFontString(player, "hudbig", 0.8f);
+            hud = HudElem.CreateFontString(player, HudElem.Fonts.HudBig, 0.8f);
             hud.SetPoint("BOTTOMCENTER", "BOTTOMCENTER", 0, -65);
             hud.SetText(text);
             hud.Alpha = 0.85f;
             hud.GlowColor = new Vector3(0.3f, 0.9f, 0.9f);
             hud.GlowAlpha = 0.55f;
-            hud.Call("SetPulseFX", 100, 2100, 1000);
-            hud.ChangeFontScaleOverTime(0.1f, 0.75f);
-            player.AfterDelay(100, e =>
+            hud.SetPulseFX( 100, 2100, 1000);
+            hud.ChangeFontScaleOverTime( 0.75f);
+            BaseScript.AfterDelay(100, () =>
             {
-                hud.ChangeFontScaleOverTime(0.1f, 0.65f);
+                hud.ChangeFontScaleOverTime(0.65f);
             });
         }
 
@@ -305,27 +306,27 @@ namespace INF3
 
             if (hud == null)
             {
-                hud = HudElem.NewClientHudElem(player);
+                hud = GSCFunctions.NewClientHudElem(player);
             }
-            hud.Call("destroy");
+            hud.Destroy();
 
-            hud = HudElem.CreateFontString(player, "hudbig", 0.8f);
+            hud = HudElem.CreateFontString(player, HudElem.Fonts.HudBig, 0.8f);
             hud.SetPoint("BOTTOMCENTER", "BOTTOMCENTER", 0, -105);
             hud.SetText(text);
             hud.Alpha = 0.85f;
             hud.GlowColor = new Vector3(0.3f, 0.9f, 0.9f);
             hud.GlowAlpha = 0.55f;
-            hud.Call("SetPulseFX", 100, 3000, 1000);
-            hud.ChangeFontScaleOverTime(0.1f, 0.75f);
-            player.AfterDelay(100, e =>
+            hud.SetPulseFX( 100, 3000, 1000);
+            hud.ChangeFontScaleOverTime(0.75f);
+            BaseScript.AfterDelay(100, () =>
             {
-                hud.ChangeFontScaleOverTime(0.1f, 0.65f);
+                hud.ChangeFontScaleOverTime(0.65f);
             });
         }
 
         private static void CreateRankHud(this Entity player)
         {
-            var hud = HudElem.CreateFontString(player, "hudbig", 1);
+            var hud = HudElem.CreateFontString(player, HudElem.Fonts.HudBig, 1);
             hud.SetPoint("BOTTOMCENTER", "BOTTOMCENTER", 0, -80);
             hud.Alpha = 0;
             hud.Color = new Vector3(0.5f, 0.5f, 0.5f);
@@ -343,7 +344,7 @@ namespace INF3
             if (player.GetScorePopupHud() != null)
             {
                 var temphud = player.GetScorePopupHud();
-                temphud.Call("destroy");
+                temphud.Destroy();
             }
 
             player.CreateRankHud();
@@ -367,8 +368,8 @@ namespace INF3
 
             hud.SetText(player.GetField<int>("xpUpdateTotal") > 0 ? "+" : "" + player.GetField<int>("xpUpdateTotal").ToString());
             hud.Alpha = 1;
-            hud.Call("SetPulseFX", 100, 3000, 1000);
-            player.AfterDelay(3000, e =>
+            hud.SetPulseFX( 100, 3000, 1000);
+            BaseScript.AfterDelay(3000, () =>
             {
                 if (hud != null)
                 {
@@ -379,12 +380,12 @@ namespace INF3
 
         public static void BonusDropTakeHud(Entity player, string text, string shader)
         {
-            var hud = HudElem.NewTeamHudElem("allies");
-            hud.HorzAlign = "center";
-            hud.VertAlign = "middle";
-            hud.AlignX = "center";
-            hud.AlignY = "middle";
-            hud.Font = "objective";
+            var hud = GSCFunctions.NewTeamHudElem("allies");
+            hud.HorzAlign = HudElem.HorzAlignments.Center;
+            hud.VertAlign = HudElem.VertAlignments.Middle;
+            hud.AlignX = HudElem.XAlignments.Center;
+            hud.AlignY = HudElem.YAlignments.Middle;
+            hud.Font = HudElem.Fonts.Objective;
             hud.FontScale = 2;
             hud.Alpha = 1;
             hud.Color = new Vector3(1, 1, 1);
@@ -393,41 +394,41 @@ namespace INF3
             hud.X = 0;
             hud.Y = 140;
 
-            hud.Call("moveovertime", 2);
-            hud.Call("fadeovertime", 2);
+            hud.MoveOverTime( 2);
+            hud.FadeOverTime( 2);
             hud.Y = 80;
             hud.Alpha = 0;
 
-            var icon = HudElem.NewTeamHudElem("allies");
-            icon.HorzAlign = "center";
-            icon.VertAlign = "middle";
-            icon.AlignX = "center";
-            icon.AlignY = "middle";
+            var icon = GSCFunctions.NewTeamHudElem("allies");
+            icon.HorzAlign = HudElem.HorzAlignments.Center;
+            icon.VertAlign = HudElem.VertAlignments.Middle;
+            icon.AlignX = HudElem.XAlignments.Center;
+            icon.AlignY = HudElem.YAlignments.Middle;
             icon.X = 0;
             icon.Y = 125;
             icon.Foreground = true;
             icon.SetShader(shader, 30, 30);
             icon.Alpha = 1;
 
-            icon.Call("moveovertime", 2);
-            icon.Call("fadeovertime", 2);
+            icon.MoveOverTime( 2);
+            icon.FadeOverTime( 2);
             icon.Y = 65;
             icon.Alpha = 0;
 
-            player.AfterDelay(2000, e =>
+            BaseScript.AfterDelay(2000, () =>
             {
-                hud.Call("destroy");
-                icon.Call("destroy");
+                hud.Destroy();
+                icon.Destroy();
             });
         }
 
         public static HudElem BonusDropHud(string shader, float xpoint)
         {
-            var icon = HudElem.NewTeamHudElem("allies");
-            icon.HorzAlign = "center";
-            icon.VertAlign = "middle";
-            icon.AlignX = "center";
-            icon.AlignY = "middle";
+            var icon = GSCFunctions.NewTeamHudElem("allies");
+            icon.HorzAlign = HudElem.HorzAlignments.Center;
+            icon.VertAlign = HudElem.VertAlignments.Middle;
+            icon.AlignX = HudElem.XAlignments.Center;
+            icon.AlignY = HudElem.YAlignments.Middle;
             icon.Foreground = true;
             icon.SetShader(shader, 30, 30);
             icon.Alpha = 1;
@@ -444,13 +445,13 @@ namespace INF3
 
         public static void CreateFlagShader(Vector3 origin)
         {
-            HudElem elem = HudElem.NewHudElem();
+            HudElem elem = GSCFunctions.NewHudElem();
             elem.SetShader("waypoint_flag_friendly", 15, 15);
             elem.Alpha = 0.6f;
             elem.X = origin.X;
             elem.Y = origin.Y;
             elem.Z = origin.Z + 100f;
-            elem.Call("SetWayPoint", 1, 1);
+            elem.SetWaypoint(true, true);
         }
 
         public static HudElem CreateShader(Vector3 origin, string shader, string team = "")
@@ -458,18 +459,18 @@ namespace INF3
             HudElem elem;
             if (team != "")
             {
-                elem = HudElem.NewTeamHudElem(team);
+                elem = GSCFunctions.NewTeamHudElem(team);
             }
             else
             {
-                elem = HudElem.NewHudElem();
+                elem = GSCFunctions.NewHudElem();
             }
             elem.SetShader(shader, 15, 15);
             elem.Alpha = 0.6f;
             elem.X = origin.X;
             elem.Y = origin.Y;
             elem.Z = origin.Z + 50f;
-            elem.Call("SetWayPoint", 1, 1);
+            elem.SetWaypoint(true,true);
 
             return elem;
         }
@@ -478,10 +479,10 @@ namespace INF3
         {
             int num = 31 - CurObjID++;
             Function.SetEntRef(-1);
-            Function.Call("objective_state", num, "active");
-            Function.Call("objective_position", num, origin);
-            Function.Call("objective_icon", num, shader);
-            Function.Call("objective_team", num, team);
+            GSCFunctions.Objective_State( num, "active");
+            GSCFunctions.Objective_Position( num, origin);
+            GSCFunctions.Objective_Icon( num, shader);
+            GSCFunctions.Objective_Team( num, team);
 
             return num;
         }

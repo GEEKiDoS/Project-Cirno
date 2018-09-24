@@ -9,21 +9,21 @@ namespace INF3
     public class Effects : BaseScript
     {
         //Fx's
-        public static readonly int bloodfx = Function.Call<int>("loadfx", "impacts/flesh_hit_body_fatal_exit");
-        public static readonly int nukefx = Function.Call<int>("loadfx", "explosions/player_death_nuke");
-        public static readonly int nuke2fx = Function.Call<int>("loadfx", "explosions/player_death_nuke_flash");
-        public static readonly int empfx = Function.Call<int>("loadfx", "explosions/emp_flash_mp");
-        public static readonly int barrelfirefx = Function.Call<int>("loadfx", "props/barrel_fire");
-        public static readonly int normalexploed = Function.Call<int>("loadfx", "explosions/oxygen_tank_explosion");
-        public static readonly int selfexploedfx = Function.Call<int>("loadfx", "props/barrelexp");
-        public static readonly int radiusexploed = Function.Call<int>("loadfx", "explosions/javelin_explosion");
-        public static readonly int smallfirefx = Function.Call<int>("loadfx", "fire/firelp_small_pm");
-        public static readonly int flarefx = Function.Call<int>("loadfx", "smoke/signal_smoke_airdrop");
-        public static readonly int redbeaconfx = Function.Call<int>("loadfx", "misc/flare_ambient");
-        public static readonly int greenbeaconfx = Function.Call<int>("loadfx", "misc/flare_ambient_green");
-        public static readonly int moneyfx = Function.Call<int>("loadfx", "props/cash_player_drop");
-        public static readonly int somkefx = Function.Call<int>("loadfx", "smoke/smoke_grenade_11sec_mp");
-        public static readonly int smallempfx = Function.Call<int>("loadfx", "explosions/emp_grenade");
+        public static readonly int bloodfx = GSCFunctions.LoadFX( "impacts/flesh_hit_body_fatal_exit");
+        public static readonly int nukefx = GSCFunctions.LoadFX( "explosions/player_death_nuke");
+        public static readonly int nuke2fx = GSCFunctions.LoadFX( "explosions/player_death_nuke_flash");
+        public static readonly int empfx = GSCFunctions.LoadFX( "explosions/emp_flash_mp");
+        public static readonly int barrelfirefx = GSCFunctions.LoadFX( "props/barrel_fire");
+        public static readonly int normalexploed = GSCFunctions.LoadFX( "explosions/oxygen_tank_explosion");
+        public static readonly int selfexploedfx = GSCFunctions.LoadFX( "props/barrelexp");
+        public static readonly int radiusexploed = GSCFunctions.LoadFX( "explosions/javelin_explosion");
+        public static readonly int smallfirefx = GSCFunctions.LoadFX( "fire/firelp_small_pm");
+        public static readonly int flarefx = GSCFunctions.LoadFX( "smoke/signal_smoke_airdrop");
+        public static readonly int redbeaconfx = GSCFunctions.LoadFX( "misc/flare_ambient");
+        public static readonly int greenbeaconfx = GSCFunctions.LoadFX( "misc/flare_ambient_green");
+        public static readonly int moneyfx = GSCFunctions.LoadFX( "props/cash_player_drop");
+        public static readonly int somkefx = GSCFunctions.LoadFX( "smoke/smoke_grenade_11sec_mp");
+        public static readonly int smallempfx = GSCFunctions.LoadFX( "explosions/emp_grenade");
 
         public Effects()
         {
@@ -41,28 +41,28 @@ namespace INF3
         public static void PlayFx(int fx, Vector3 origin)
         {
             Function.SetEntRef(-1);
-            Function.Call("playfx", fx, origin);
+            GSCFunctions.PlayFX( fx, origin);
         }
 
         public static Entity SpawnFx(int fx, Vector3 origin)
         {
             Function.SetEntRef(-1);
-            var ent = Function.Call<Entity>("spawnfx", fx, origin);
-            Function.Call("triggerfx", ent);
+            var ent = GSCFunctions.SpawnFX( fx, origin);
+            GSCFunctions.TriggerFX( ent);
 
             return ent;
         }
 
         private void SelfExploed(Entity player)
         {
-            PlayFx(selfexploedfx, player.Call<Vector3>("gettagorigin", "j_head"));
+            PlayFx(selfexploedfx, player.GetTagOrigin( "j_head"));
             player.PlaySound(Sound.ExploedMineSound);
             player.Call("finishplayerdamage", player, player, player.GetField<int>("maxhealth"), 0, 0, "nuke_mp", player.Origin, "MOD_EXPLOSIVE", 0);
         }
 
         private void RadiusExploed(Entity player, Vector3 origin)
         {
-            Call("RadiusDamage", origin, 500, 500, 50, player, "MOD_EXPLOSIVE", "nuke_mp");
+            this.Call("RadiusDamage", origin, 500, 500, 50, player, "MOD_EXPLOSIVE", "nuke_mp");
             PlayFx(radiusexploed, origin);
             player.PlaySound(Sound.CrashSound);
         }
@@ -74,7 +74,7 @@ namespace INF3
         }
         private void SelfExpoledISIS(Entity player)
         {
-            Call("RadiusDamage", player.Origin, 256, 400, 70, player, "MOD_EXPLOSIVE", "bomb_site_mp");
+            this.Call("RadiusDamage", player.Origin, 256, 400, 70, player, "MOD_EXPLOSIVE", "bomb_site_mp");
             PlayFx(radiusexploed, player.Origin);
             player.PlaySoundAsMaster(Sound.ISISExploed);
         }

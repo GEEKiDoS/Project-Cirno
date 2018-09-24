@@ -10,6 +10,9 @@ namespace INF3
     {
         public INF3Main()
         {
+            //Init call wrapper
+            CallWrapper.Initialize();
+
             //Box
             Utility.PreCacheShader("hudicon_neutral");
             Utility.PreCacheShader("waypoint_ammo_friendly");
@@ -62,11 +65,11 @@ namespace INF3
             //No Humans auto change map
             OnInterval(10000, () =>
             {
-                if (Call<int>("getteamscore", "axis") > 1 && Call<int>("getteamscore", "allies") == 0)
+                if (this.Call<int>("getteamscore", "axis") > 1 && this.Call<int>("getteamscore", "allies") == 0)
                 {
                     AfterDelay(15000, () =>
                     {
-                        if (Call<int>("getteamscore", "axis") > 1 && Call<int>("getteamscore", "allies") == 0)
+                        if (this.Call<int>("getteamscore", "axis") > 1 && this.Call<int>("getteamscore", "allies") == 0)
                             Utilities.ExecuteCommand("map_rotate");
                     });
                     return false;
@@ -88,7 +91,7 @@ namespace INF3
                 player.SetField("hastombstone", 0);
                 OnSpawned(player);
                 player.SpawnedPlayer += () => OnSpawned(player);
-                player.OnInterval(100, ent =>
+                OnInterval(100, () =>
                 {
                     if (player.HasField("speed") && player.GetField<float>("speed") != 0)
                     {
@@ -107,10 +110,10 @@ namespace INF3
                         {
                             if (player.Call<int>("getweaponammoclip", player.CurrentWeapon) != 0)
                             {
-                                Vector3 vector = Call<Vector3>("anglestoforward", player.Call<Vector3>("getplayerangles"));
+                                Vector3 vector = this.Call<Vector3>("anglestoforward", player.Call<Vector3>("getplayerangles"));
                                 Vector3 dsa = new Vector3(vector.X * 1000000f, vector.Y * 1000000f, vector.Z * 1000000f);
-                                Call("magicbullet", "stinger_mp", player.Call<Vector3>("gettagorigin", "tag_weapon_left"), dsa, self);
-                                player.Call("setweaponammoclip", player.CurrentWeapon, 0);
+                                this.Call("magicbullet", "stinger_mp", player.GetTagOrigin( "tag_weapon_left"), dsa, self);
+                                player.SetWeaponAmmoClip( player.CurrentWeapon, 0);
                             }
                         }
                         else
@@ -124,49 +127,49 @@ namespace INF3
                 {
                     if (weapon.As<string>() == "iw5_m60jugg_mp_eotechlmg_rof_camo08")
                     {
-                        player.Call("setweaponammoclip", "iw5_m60jugg_mp_eotechlmg_rof_camo08", 100);
+                        player.SetWeaponAmmoClip( "iw5_m60jugg_mp_eotechlmg_rof_camo08", 100);
                     }
                     if (weapon.As<string>() == "uav_strike_marker_mp")
                     {
                         if (player.GetField<int>("perk_vulture") == 1)
                         {
-                            Vector3 vector = Call<Vector3>("anglestoforward", new Parameter[] { player.Call<Vector3>("getplayerangles", new Parameter[0]) });
+                            Vector3 vector = this.Call<Vector3>("anglestoforward", new Parameter[] { player.Call<Vector3>("getplayerangles", new Parameter[0]) });
                             Vector3 dsa = new Vector3(vector.X * 1000000f, vector.Y * 1000000f, vector.Z * 1000000f);
                             switch (Utility.Random.Next(5))
                             {
                                 case 0:
-                                    Call("magicbullet", "stinger_mp", player.Call<Vector3>("gettagorigin", "tag_weapon_left"), dsa, self);
+                                    this.Call("magicbullet", "stinger_mp", player.GetTagOrigin( "tag_weapon_left"), dsa, self);
                                     break;
                                 case 1:
-                                    Call("magicbullet", "javelin_mp", player.Call<Vector3>("gettagorigin", "tag_weapon_left"), dsa, self);
+                                    this.Call("magicbullet", "javelin_mp", player.GetTagOrigin( "tag_weapon_left"), dsa, self);
                                     break;
                                 case 2:
-                                    AfterDelay(0, () => Call("magicbullet", "ac130_105mm_mp", player.Call<Vector3>("gettagorigin", "tag_weapon_left"), dsa, self));
+                                    AfterDelay(0, () => this.Call("magicbullet", "ac130_105mm_mp", player.GetTagOrigin( "tag_weapon_left"), dsa, self));
                                     break;
                                 case 3:
-                                    AfterDelay(0, () => Call("magicbullet", "remote_tank_projectile_mp", player.Call<Vector3>("gettagorigin", "tag_weapon_left"), dsa, self));
+                                    AfterDelay(0, () => this.Call("magicbullet", "remote_tank_projectile_mp", player.GetTagOrigin( "tag_weapon_left"), dsa, self));
                                     break;
                                 case 4:
-                                    AfterDelay(0, () => Call("magicbullet", "ims_projectile_mp", player.Call<Vector3>("gettagorigin", "tag_weapon_left"), dsa, self));
+                                    AfterDelay(0, () => this.Call("magicbullet", "ims_projectile_mp", player.GetTagOrigin( "tag_weapon_left"), dsa, self));
                                     break;
                             }
                         }
                         else
                         {
-                            Vector3 vector = Call<Vector3>("anglestoforward", new Parameter[] { player.Call<Vector3>("getplayerangles", new Parameter[0]) });
+                            Vector3 vector = this.Call<Vector3>("anglestoforward", new Parameter[] { player.Call<Vector3>("getplayerangles", new Parameter[0]) });
                             Vector3 dsa = new Vector3(vector.X * 1000000f, vector.Y * 1000000f, vector.Z * 1000000f);
                             switch (Utility.Random.Next(3))
                             {
                                 case 0:
-                                    Call("magicbullet", "rpg_mp", player.Call<Vector3>("gettagorigin", "tag_weapon_left"), dsa, self);
+                                    this.Call("magicbullet", "rpg_mp", player.GetTagOrigin( "tag_weapon_left"), dsa, self);
                                     break;
                                 case 1:
-                                    Call("magicbullet", "iw5_smaw_mp", player.Call<Vector3>("gettagorigin", "tag_weapon_left"), dsa, self);
+                                    this.Call("magicbullet", "iw5_smaw_mp", player.GetTagOrigin( "tag_weapon_left"), dsa, self);
                                     break;
                                 case 2:
-                                    AfterDelay(0, () => Call("magicbullet", "sam_projectile_mp", player.Call<Vector3>("gettagorigin", "tag_weapon_left"), dsa, self));
-                                    AfterDelay(200, () => Call("magicbullet", "sam_projectile_mp", player.Call<Vector3>("gettagorigin", "tag_weapon_left"), dsa, self));
-                                    AfterDelay(400, () => Call("magicbullet", "sam_projectile_mp", player.Call<Vector3>("gettagorigin", "tag_weapon_left"), dsa, self));
+                                    AfterDelay(0, () => this.Call("magicbullet", "sam_projectile_mp", player.GetTagOrigin( "tag_weapon_left"), dsa, self));
+                                    AfterDelay(200, () => this.Call("magicbullet", "sam_projectile_mp", player.GetTagOrigin( "tag_weapon_left"), dsa, self));
+                                    AfterDelay(400, () => this.Call("magicbullet", "sam_projectile_mp", player.GetTagOrigin( "tag_weapon_left"), dsa, self));
                                     break;
                             }
                         }
@@ -246,9 +249,9 @@ namespace INF3
                 {
                     player.TakeAllWeapons();
                     player.GiveWeapon("iw5_usp45_mp_tactical");
-                    player.Call("setweaponammoclip", "iw5_usp45_mp_tactical", 0);
+                    player.SetWeaponAmmoClip( "iw5_usp45_mp_tactical", 0);
                     player.Call("setweaponammostock", "iw5_usp45_mp_tactical", 0);
-                    player.AfterDelay(300, e => player.SwitchToWeaponImmediate("iw5_usp45_mp_tactical"));
+                    BaseScript.AfterDelay(300, () => player.SwitchToWeaponImmediate("iw5_usp45_mp_tactical"));
                 }
             }
         }
@@ -260,7 +263,7 @@ namespace INF3
 
             if (attacker.GetTeam() == "allies")
             {
-                if (Call<int>("getdvarint", "bonus_double_points") == 1)
+                if (this.Call<int>("getdvarint", "bonus_double_points") == 1)
                 {
                     if (player.GetField<int>("rtd_flag") == 1 || player.GetField<int>("rtd_king") == 1)
                     {
@@ -283,7 +286,7 @@ namespace INF3
                     }
                 }
 
-                if (Call<int>("getdvarint", "bonus_insta_kill") == 1)
+                if (this.Call<int>("getdvarint", "bonus_insta_kill") == 1)
                 {
                     player.Health = 3;
                     return;
@@ -302,7 +305,7 @@ namespace INF3
                     if (player.GetField<float>("speed") >= 1f)
                     {
                         player.SetSpeed(0.5f);
-                        player.AfterDelay(5000, e => player.SetSpeed(1));
+                        BaseScript.AfterDelay(5000, () => player.SetSpeed(1));
                     }
                 }
             }
@@ -317,7 +320,7 @@ namespace INF3
             {
                 if (player.GetField<int>("rtd_flag") == 1)
                 {
-                    if (Call<int>("getdvarint", "bonus_double_points") == 1)
+                    if (this.Call<int>("getdvarint", "bonus_double_points") == 1)
                     {
                         attacker.WinCash(400);
                     }
@@ -328,7 +331,7 @@ namespace INF3
                 }
                 else if (player.GetField<int>("rtd_king") == 1)
                 {
-                    if (Call<int>("getdvarint", "bonus_double_points") == 1)
+                    if (this.Call<int>("getdvarint", "bonus_double_points") == 1)
                     {
                         attacker.WinCash(1000);
                     }
@@ -339,7 +342,7 @@ namespace INF3
                 }
                 else
                 {
-                    if (Call<int>("getdvarint", "bonus_double_points") == 1)
+                    if (this.Call<int>("getdvarint", "bonus_double_points") == 1)
                     {
                         attacker.WinCash(200);
                     }

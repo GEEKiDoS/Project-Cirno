@@ -22,8 +22,8 @@ namespace INF3
 
         public MapEdit()
         {
-            var _e = Call<Entity>("getent", "care_package", "targetname");
-            _airdropCollision = Call<Entity>("getent", _e.GetField<string>("target"), "targetname");
+            var _e = this.Call<Entity>("getent", "care_package", "targetname");
+            _airdropCollision = this.Call<Entity>("getent", _e.GetField<string>("target"), "targetname");
 
             _nullCollision = Utility.Spawn("script_origin", new Vector3());
 
@@ -100,15 +100,15 @@ namespace INF3
 
         private void UsableHud(Entity player)
         {
-            HudElem message = HudElem.CreateFontString(player, "big", 1.5f);
+            HudElem message = HudElem.CreateFontString(player, HudElem.Fonts.Big, 1.5f);
             message.SetPoint("CENTER", "CENTER", 1, 115);
             message.Alpha = 0.65f;
 
-            HudElem perk = HudElem.NewClientHudElem(player);
+            HudElem perk = GSCFunctions.NewClientHudElem(player);
 
             player.SetField("currentusable_entref", 0);
 
-            player.OnInterval(100, e =>
+            OnInterval(100, () =>
             {
                 try
                 {
@@ -141,7 +141,7 @@ namespace INF3
                                 perk.X = ent.Origin.X;
                                 perk.Y = ent.Origin.Y;
                                 perk.Z = ent.Origin.Z + 50f;
-                                perk.Call("setwaypoint", 1, 1);
+                                perk.SetWaypoint(true, true);
                                 perk.Alpha = 0.7f;
                             }
                             else
@@ -173,7 +173,7 @@ namespace INF3
             laptop.Call("setmodel", "com_laptop_2_open");
             bool flag = true;
             laptop.OnNotify("stop_rotate", e => flag = false);
-            laptop.OnInterval(7000, e =>
+            OnInterval(7000, () =>
             {
                 laptop.Call("rotateyaw", -360, 7);
                 return flag;
@@ -186,7 +186,7 @@ namespace INF3
         {
             int num2 = (int)Math.Ceiling(top.DistanceTo(bottom) / 30f);
             Vector3 vector = new Vector3((top.X - bottom.X) / num2, (top.Y - bottom.Y) / num2, (top.Z - bottom.Z) / num2);
-            Vector3 vector2 = Call<Vector3>("vectortoangles", top - bottom);
+            Vector3 vector2 = this.Call<Vector3>("vectortoangles", top - bottom);
             Vector3 angles = new Vector3(vector2.Z, vector2.Y + 90f, vector2.X);
             for (int i = 0; i <= num2; i++)
             {
@@ -207,7 +207,7 @@ namespace INF3
                 {
                     if (entity.Origin.DistanceTo(enter) <= 50f)
                     {
-                        entity.Call("setorigin", exit);
+                        entity.SetOrigin( exit);
                     }
                 }
                 return true;
@@ -224,7 +224,7 @@ namespace INF3
                 {
                     if (entity.Origin.DistanceTo(enter) <= 50f)
                     {
-                        entity.Call("setorigin", exit);
+                        entity.SetOrigin( exit);
                     }
                 }
                 return true;
@@ -241,7 +241,7 @@ namespace INF3
             Vector3 vector2 = new Vector3(v.X / num3, v.Y / num3, v.Z / num4);
             float x = vector2.X / 4f;
             float y = vector2.Y / 4f;
-            Vector3 angles = Call<Vector3>("vectortoangles", v);
+            Vector3 angles = this.Call<Vector3>("vectortoangles", v);
             angles = new Vector3(0f, angles.Y, 90f);
             Entity entity = Utility.Spawn("script_origin", new Vector3((start.X + end.X) / 2f, (start.Y + end.Y) / 2f, (start.Z + end.Z) / 2f));
             for (int i = 0; i < num4; i++)
@@ -272,7 +272,7 @@ namespace INF3
             Vector3 vector2 = new Vector3(v.X / num3, v.Y / num3, v.Z / num4);
             float x = vector2.X / 4f;
             float y = vector2.Y / 4f;
-            Vector3 angles = Call<Vector3>("vectortoangles", v);
+            Vector3 angles = this.Call<Vector3>("vectortoangles", v);
             angles = new Vector3(0f, angles.Y, 90f);
             Entity entity = Utility.Spawn("script_origin", new Vector3((start.X + end.X) / 2f, (start.Y + end.Y) / 2f, (start.Z + end.Z) / 2f));
             for (int i = 0; i < num4; i++)
@@ -327,7 +327,7 @@ namespace INF3
             Entity entity = Utility.Spawn("script_model", origin);
             entity.Call("setmodel", "com_plasticcase_friendly");
             entity.SetField("angles", angles);
-            entity.Call("clonebrushmodeltoscriptmodel", _airdropCollision);
+            entity.CloneBrushModelToScriptModel( _airdropCollision);
             return entity;
         }
 
@@ -335,7 +335,7 @@ namespace INF3
         {
             Entity entity = Utility.Spawn("script_model", origin);
             entity.SetField("angles", angles);
-            entity.Call("clonebrushmodeltoscriptmodel", _airdropCollision);
+            entity.CloneBrushModelToScriptModel( _airdropCollision);
             return entity;
         }
 

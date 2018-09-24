@@ -24,7 +24,7 @@ namespace INF3
             {
                 OnInterval(100, () =>
                 {
-                    if (Call<int>("getteamscore", "axis") == 1)
+                    if (this.Call<int>("getteamscore", "axis") == 1)
                     {
                         SharpShooter_Tick();
                         return false;
@@ -46,16 +46,16 @@ namespace INF3
 
         public void SharpShooter_Tick()
         {
-            var _cycleTitle = HudElem.CreateServerFontString("objective", 1.4f);
+            var _cycleTitle = HudElem.CreateServerFontString(HudElem.Fonts.Objective, 1.4f);
             _cycleTitle.SetPoint("TOPLEFT", "TOPLEFT", 115, 5);
             _cycleTitle.HideWhenInMenu = true;
             _cycleTitle.SetText("Weapon Cycling: ");
 
-            _cycleTimer = HudElem.CreateServerFontString("objective", 1.4f);
+            _cycleTimer = HudElem.CreateServerFontString(HudElem.Fonts.Objective, 1.4f);
             _cycleTimer.SetPoint("TOPLEFT", "TOPLEFT", 255, 5);
             _cycleTimer.HideWhenInMenu = true;
 
-            _cycleTimer.Call("settimer", _cycleRemaining - 1);
+            _cycleTimer.SetTimer(_cycleRemaining - 1);
 
             OnInterval(1000, () =>
             {
@@ -64,7 +64,7 @@ namespace INF3
                 if (_cycleRemaining <= 0)
                 {
                     _cycleRemaining = Utility.Random.Next(45, 90);
-                    _cycleTimer.Call("settimer", _cycleRemaining);
+                    _cycleTimer.SetTimer(_cycleRemaining);
 
                     UpdateWeapon();
                 }
@@ -100,9 +100,9 @@ namespace INF3
                         player.GiveMaxAmmoWeapon(_secondeWeapon.Code);
                         player.GiveMaxAmmoWeapon("frag_grenade_mp");
                         player.GiveMaxAmmoWeapon("trophy_mp");
-                        player.AfterDelay(100, ent =>
+                        BaseScript.AfterDelay(100, () =>
                         {
-                            ent.SwitchToWeaponImmediate(_firstWeapon.Code);
+                            player.SwitchToWeaponImmediate(_firstWeapon.Code);
                         });
                     }
                     else
@@ -121,9 +121,9 @@ namespace INF3
                         }
                         player.GiveMaxAmmoWeapon(_secondeWeapon.Code);
                         player.GiveMaxAmmoWeapon("frag_grenade_mp");
-                        player.AfterDelay(100, ent =>
+                        AfterDelay(100, () =>
                         {
-                            ent.SwitchToWeaponImmediate(_firstWeapon.Code);
+                            player.SwitchToWeaponImmediate(_firstWeapon.Code);
                         });
                     }
 
@@ -152,9 +152,9 @@ namespace INF3
                 player.GiveWeapon("frag_grenade_mp");
                 player.GiveWeapon("trophy_mp");
 
-                player.AfterDelay(100, entity =>
+                BaseScript.AfterDelay(100, () =>
                 {
-                    entity.SwitchToWeaponImmediate(_firstWeapon.Code);
+                    player.SwitchToWeaponImmediate(_firstWeapon.Code);
                 });
 
                 player.OnInterval(100, e =>
@@ -165,16 +165,11 @@ namespace INF3
                     {
                         if (weapon.StartsWith("rpg") || weapon.StartsWith("iw5_smaw") || weapon.StartsWith("m320") || weapon.StartsWith("stinger") || weapon.StartsWith("javelin") || weapon.StartsWith("gl") || weapon.StartsWith("uav"))
                         {
-                            player.Call("giveMaxAmmo", weapon);
+                            player.GiveMaxAmmo( weapon);
                         }
                     }
 
-                    if (player.GetTeam() == "axis")
-                    {
-                        return false;
-                    }
-
-                    return player.IsPlayer && player.IsAlive;
+                    return player.IsPlayer && player.IsAlive || player.GetTeam() != "axis";
                 });
             }
         }
