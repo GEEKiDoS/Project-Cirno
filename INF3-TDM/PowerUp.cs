@@ -47,6 +47,7 @@ namespace INF3
     //    public Entity Entity { get; }
     //    public Entity FX { get; }
     //    public Vector3 Origin { get; }
+    //    public int Timeout { get; set; }
     //    public string Notify
     //    {
     //        get
@@ -86,6 +87,7 @@ namespace INF3
     //        Entity.SetField("angles", angle);
     //        FX = Effects.SpawnFx(fx, origin);
     //        Origin = origin;
+    //        Timeout = 30;
 
     //        PowerUpTimer();
     //        PowerUpRotate();
@@ -102,7 +104,7 @@ namespace INF3
     //        {
     //            foreach (var player in Utility.Players)
     //            {
-    //                if (player.IsAlive && player.GetTeam() == "allies" && player.Origin.DistanceTo(Origin) < 50)
+    //                if (player.IsAlive && player.Origin.DistanceTo(Origin) < 50)
     //                {
     //                    player.Notify(Notify);
     //                    Dispose();
@@ -135,7 +137,7 @@ namespace INF3
 
     //        bool ishide = false;
     //        int num = 0;
-    //        Entity.OnInterval(500, e =>
+    //        Entity.OnInterval(1000, e =>
     //        {
     //            if (!ishide)
     //            {
@@ -189,60 +191,21 @@ namespace INF3
                 player.OnNotify("nuke_drop", e => Nuke(player));
                 player.OnNotify("fire_sale", e => FireSale(player));
                 player.OnNotify("bonus_points", e => BonusPoints(player));
-                player.OnNotify("carpenter", e => Carpenter(player));
-                player.OnNotify("burned_out", e => BurnedOut(player));
-                player.OnNotify("killing_time", e => KillingTime(player));
             };
         }
 
-        public override void OnPlayerKilled(Entity player, Entity inflictor, Entity attacker, int damage, string mod, string weapon, Vector3 dir, string hitLoc)
-        {
-            if (attacker == null || !attacker.IsPlayer || attacker.GetTeam() == player.GetTeam())
-                return;
+        //public override void OnPlayerKilled(Entity player, Entity inflictor, Entity attacker, int damage, string mod, string weapon, Vector3 dir, string hitLoc)
+        //{
+        //    if (mod == "MOD_SUICIDE")
+        //        return;
 
-            if (attacker.GetTeam() == "axis" || !mod.Contains("BULLET"))
-            {
-                return;
-            }
-
-            var random = Utility.Random.Next(15);
-            var randomequels = Utility.Random.Next(15);
-            if (random == randomequels)
-            {
-                //PowerUpDrop(player, attacker);
-                switch ((PowerUpType)Utility.Random.Next(Enum.GetNames(typeof(PowerUpType)).Length))
-                {
-                    case PowerUpType.MaxAmmo:
-                        attacker.Notify("max_ammo");
-                        Utility.Println(attacker.Name + " rolled PowerUp - ^2Max Ammo");
-                        break;
-                    case PowerUpType.DoublePoints:
-                        attacker.Notify("double_points");
-                        Utility.Println(attacker.Name + " rolled PowerUp - ^2Double Points");
-                        break;
-                    case PowerUpType.InstaKill:
-                        attacker.Notify("insta_kill");
-                        Utility.Println(attacker.Name + " rolled PowerUp - ^2Insta-Kill");
-                        break;
-                    case PowerUpType.Nuke:
-                        attacker.Notify("nuke_drop");
-                        Utility.Println(attacker.Name + " rolled PowerUp - ^2Nuke");
-                        break;
-                    case PowerUpType.FireSale:
-                        attacker.Notify("fire_sale");
-                        Utility.Println(attacker.Name + " rolled PowerUp - ^2Fire Sale");
-                        break;
-                    case PowerUpType.BonusPoints:
-                        attacker.Notify("bonus_points");
-                        Utility.Println(attacker.Name + " rolled PowerUp - ^2Bonus Points");
-                        break;
-                    case PowerUpType.Carpenter:
-                        attacker.Notify("carpenter");
-                        Utility.Println(attacker.Name + " rolled PowerUp - ^2Carpenter");
-                        break;
-                }
-            }
-        }
+        //    var random = Utility.Random.Next(5);
+        //    var randomequels = Utility.Random.Next(5);
+        //    if (random == randomequels)
+        //    {
+        //        PowerUpDrop(player, attacker);
+        //    }
+        //}
 
         //public void PowerUpDrop(Entity player, Entity attacker)
         //{
@@ -255,10 +218,10 @@ namespace INF3
         //            new PowerUpEntity(PowerUpType.DoublePoints, "com_plasticcase_friendly", player.Origin, player.GetField<Vector3>("angles"), Effects.redbeaconfx);
         //            break;
         //        case PowerUpType.InstaKill:
-        //            new PowerUpEntity(PowerUpType.InstaKill, "com_plasticcase_trap_friendly", player.Origin, player.GetField<Vector3>("angles"), Effects.redbeaconfx);
+        //            new PowerUpEntity(PowerUpType.InstaKill, "com_plasticcase_trap_friendly", player.Origin, player.GetField<Vector3>("angles"), Effects.smallfirefx);
         //            break;
         //        case PowerUpType.Nuke:
-        //            new PowerUpEntity(PowerUpType.Nuke, "projectile_cbu97_clusterbomb", player.Origin, player.GetField<Vector3>("angles") - new Vector3(90, 0, 0), Effects.redbeaconfx);
+        //            new PowerUpEntity(PowerUpType.Nuke, "projectile_cbu97_clusterbomb", player.Origin, player.GetField<Vector3>("angles") - new Vector3(90, 0, 0), Effects.smallfirefx);
         //            break;
         //        case PowerUpType.FireSale:
         //            new PowerUpEntity(PowerUpType.FireSale, "com_plasticcase_enemy", player.Origin, player.GetField<Vector3>("angles"), Effects.greenbeaconfx);
@@ -269,106 +232,134 @@ namespace INF3
         //    }
         //}
 
-        public static void PowerUpInfo(string text, Vector3 color)
-        {
-            foreach (var player in Utility.Players)
-            {
-                if (player.IsAlive && player.GetTeam() == "allies")
-                {
-                    if (color.Equals(new Vector3(1, 1, 1)))
-                    {
-                        player.GamblerText(text, new Vector3(1, 1, 1), color, 1f, 0);
-                    }
-                    else
-                    {
-                        player.PlayLocalSound("mp_bonus_start");
-                        player.GamblerText(text, new Vector3(1, 1, 1), color, 1f, 0.85f);
-                    }
-                }
-            }
-        }
+        //private void PowerUpHudTimer(Entity player,HudElem hud)
+        //{
+        //    int timer = 0;
+        //    player.OnInterval(1000, e =>
+        //    {
+        //        timer++;
+        //        if (timer == 20)
+        //        {
+        //            float i = 0;
+        //            bool ishide = false;
+        //            player.OnInterval(500, e1 =>
+        //            {
+        //                if (!ishide)
+        //                {
+        //                    hud.Call("fadeovertime", 0.5f);
+        //                    hud.Alpha = 0;
+        //                    ishide = true;
+        //                }
+        //                else
+        //                {
+        //                    hud.Call("fadeovertime", 0.5f);
+        //                    hud.Alpha = 1;
+        //                    ishide = false;
+        //                }
+        //                i++;
+        //                if (i >= 5)
+        //                {
+        //                    player.OnInterval(250, e2 =>
+        //                    {
+        //                        if (!ishide)
+        //                        {
+        //                            hud.Call("fadeovertime", 0.25f);
+        //                            hud.Alpha = 0;
+        //                            ishide = true;
+        //                        }
+        //                        else
+        //                        {
+        //                            hud.Call("fadeovertime", 0.25f);
+        //                            hud.Alpha = 1;
+        //                            ishide = false;
+        //                        }
+        //                        i += 0.5f;
+        //                        if (i >= 10)
+        //                        {
+        //                            hud.Call("destroy");
+        //                            return false;
+        //                        }
+
+        //                        return true;
+        //                    });
+        //                    return false;
+        //                }
+        //                return true;
+        //            });
+        //            return false;
+        //        }
+        //        return true;
+        //    });
+        //}
 
         public void MaxAmmo(Entity player)
         {
-            PowerUpInfo("Max Ammo", new Vector3(0, 1, 0));
+            player.PlayLocalSound("mp_bonus_start");
+            player.PrintlnBold("^2Max Ammo");
             foreach (var item in Utility.Players)
             {
-                if (item.IsAlive && item.GetTeam() == "allies")
+                if (item.GetTeam() == player.GetTeam())
                 {
-                    item.Call("givemaxammo", Sharpshooter._firstWeapon.Code);
-                    item.Call("givemaxammo", Sharpshooter._mulekickWeapon.Code);
-                    item.Call("givemaxammo", Sharpshooter._secondeWeapon.Code);
-                    item.GiveMaxAmmoWeapon("frag_grenade_mp");
-                    item.GiveMaxAmmoWeapon("trophy_mp");
+                    player.Call("givemaxammo", player.CurrentWeapon);
                 }
             }
         }
 
         public void DoublePoints(Entity player)
         {
-            if (Utility.GetDvar<int>("bonus_double_points") == 1)
-            {
-                return;
-            }
-
-            PowerUpInfo("Double Points", new Vector3(0, 1, 0));
-            Utility.SetDvar("bonus_double_points", 1);
+            player.PlayLocalSound("mp_bonus_start");
+            player.PrintlnBold("^2Double Points");
+            Utility.SetDvar(player.GetTeam() + "_double_points", 1);
             player.AfterDelay(30000, e =>
             {
-                PowerUpInfo("Double Points Off", new Vector3(1, 1, 1));
-                Utility.SetDvar("bonus_double_points", 0);
+                Utility.SetDvar(player.GetTeam() + "_double_points", 0);
+                player.PrintlnBold("Double Points off");
             });
         }
 
         public void InstaKill(Entity player)
         {
-            if (Utility.GetDvar<int>("bonus_insta_kill") == 1)
-            {
-                return;
-            }
-
-            PowerUpInfo("Insta-Kill", new Vector3(0, 1, 0));
-            Utility.SetDvar("bonus_insta_kill", 1);
+            player.PlayLocalSound("mp_bonus_start");
+            player.PrintlnBold("^2Insta-Kill");
+            Utility.SetDvar(player.GetTeam() + "_insta_kill", 1);
             player.AfterDelay(30000, e =>
             {
-                PowerUpInfo("Insta-Kill Off", new Vector3(1, 1, 1));
-                Utility.SetDvar("bonus_insta_kill", 0);
+                Utility.SetDvar(player.GetTeam() + "_insta_kill", 0);
+                player.PrintlnBold("Insta-Kill off");
             });
         }
 
         public void Nuke(Entity player)
         {
-            PowerUpInfo("Nuke", new Vector3(0, 1, 0));
-
+            player.PlayLocalSound("mp_bonus_start");
             player.WinCash(400);
+            player.PrintlnBold("^2Nuke");
+
             foreach (var item in Utility.Players)
             {
                 if (item.GetTeam() != player.GetTeam() && item.IsAlive)
                 {
-                    item.Notify("self_exploed");
+                    item.AfterDelay(600, e => item.Notify("self_exploed"));
                 }
             }
         }
 
         public void FireSale(Entity player)
         {
-            if (Utility.GetDvar<int>("bonus_fire_sale") == 1)
-            {
-                return;
-            }
-
-            PowerUpInfo("Fire Sale", new Vector3(0, 1, 0));
-            Utility.SetDvar("bonus_fire_sale", 1);
+            player.PlayLocalSound("mp_bonus_start");
+            player.PrintlnBold("^2Fire Sale");
+            Utility.SetDvar(player.GetTeam() + "_fire_sale", 1);
             player.AfterDelay(30000, e =>
             {
-                PowerUpInfo("Fire Sale Off", new Vector3(1, 1, 1));
-                Utility.SetDvar("bonus_fire_sale", 0);
+                Utility.SetDvar(player.GetTeam() + "_fire_sale", 0);
+                player.PrintlnBold("Fire Sale off");
             });
         }
 
         public void BonusPoints(Entity player)
         {
-            PowerUpInfo("Bonus Points", new Vector3(0, 1, 0));
+            player.PlayLocalSound("mp_bonus_start");
+            player.PrintlnBold("^2Bonus Points");
             player.WinCash(500);
             foreach (var item in Utility.Players)
             {
@@ -377,62 +368,6 @@ namespace INF3
                     item.WinCash(500);
                 }
             }
-        }
-
-        public void Carpenter(Entity player)
-        {
-            PowerUpInfo("Carpenter", new Vector3(0, 1, 0));
-
-            foreach (var item in MapEdit.doors)
-            {
-                if (item.State == Door.DoorState.Broken)
-                {
-                    item.State = Door.DoorState.Open;
-                }
-                item.HP = item.MaxHP;
-            }
-        }
-
-        public void BurnedOut(Entity player)
-        {
-            if (Utility.GetDvar<int>("bonus_burned_out") == 1)
-            {
-                return;
-            }
-
-            PowerUpInfo("Burned Out", new Vector3(1, 1, 0));
-
-            Utility.SetDvar("bonus_burned_out", 1);
-            player.AfterDelay(30000, e =>
-            {
-                Utility.SetDvar("bonus_burned_out", 0);
-                PowerUpInfo("Burned Out Off", new Vector3(1, 1, 1));
-            });
-        }
-
-        public void KillingTime(Entity player)
-        {
-            if (Utility.GetDvar<int>("bonus_killing_time") == 1)
-            {
-                return;
-            }
-
-            PowerUpInfo("Killing Time", new Vector3(1, 1, 0));
-
-            Utility.SetDvar("bonus_killing_time", 1);
-            player.AfterDelay(30000, e =>
-            {
-                Utility.SetDvar("bonus_killing_time", 0);
-                PowerUpInfo("Killing Time Off", new Vector3(1, 1, 1));
-                foreach (var item in Utility.Players)
-                {
-                    if (item.IsAlive && item.GetTeam() == "axis" && item.GetField<float>("speed") <= 1f)
-                    {
-                        item.Notify("self_exploed");
-                        player.WinCash(100);
-                    }
-                }
-            });
         }
     }
 }

@@ -99,12 +99,12 @@ namespace INF3
         #region ontimer
         public void OnInterval(int interval, Func<Entity, bool> function)
         {
-            BaseScript.OnInterval(interval, () => function(Entity));
+            Entity.OnInterval(interval, function);
         }
 
         public void AfterDelay(int delay, Action<Entity> function)
         {
-            BaseScript.AfterDelay(delay, () => function(Entity));
+            Entity.AfterDelay(delay, function);
         }
         #endregion
 
@@ -134,21 +134,21 @@ namespace INF3
 
                 if (Entity != null)
                 {
-                    Entity.Delete();
+                    Entity.Call("delete");
                 }
                 if (Laptop != null)
                 {
-                    Laptop.Delete();
+                    Laptop.Call("delete");
                 }
                 if (Shader != null)
                 {
-                    Shader.Destroy();
+                    Shader.Call("destroy");
                 }
 
                 if (isObjective)
                 {
                     Function.SetEntRef(-1);
-                    GSCFunctions.Objective_Delete(objectiveId);
+                    Function.Call("objective_delete", ObjectiveId);
                 }
 
                 MapEdit.usables.Remove(this);
@@ -194,15 +194,15 @@ namespace INF3
             for (int i = 0; i < size; i++)
             {
                 Entity ent1 = MapEdit.SpawnCrate(open + new Vector3(0f, 30f, 0f) * ((float)num), new Vector3(0f, 0f, 0f));
-                ent1.SetModel( "com_plasticcase_enemy");
-                ent1.EnableLinkTo();
-                ent1.LinkTo( Entity);
+                ent1.Call("setmodel", "com_plasticcase_enemy");
+                ent1.Call("enablelinkto");
+                ent1.Call("linkto", Entity);
                 for (int j = 1; j < height; j++)
                 {
                     Entity ent2 = MapEdit.SpawnCrate((open + new Vector3(0f, 30f, 0f) * ((float)num)) - (new Vector3(70f, 0f, 0f) * j), new Vector3(0f, 0f, 0f));
-                    ent2.SetModel( "com_plasticcase_enemy");
-                    ent2.EnableLinkTo();
-                    ent2.LinkTo( Entity);
+                    ent2.Call("setmodel", "com_plasticcase_enemy");
+                    ent2.Call("enablelinkto");
+                    ent2.Call("linkto", Entity);
                 }
                 num++;
             }
@@ -282,7 +282,7 @@ namespace INF3
         public void Close()
         {
             Entity.PlaySound(Sound.DoorSound);
-            Entity.MoveTo( CloseOrigin, 1);
+            Entity.Call("moveto", CloseOrigin, 1);
             AfterDelay(1000, ent =>
             {
                 State = DoorState.Close;
@@ -292,7 +292,7 @@ namespace INF3
         public void Open()
         {
             Entity.PlaySound(Sound.DoorSound);
-            Entity.MoveTo( OpenOrigin, 1);
+            Entity.Call("moveto", OpenOrigin, 1);
             AfterDelay(1000, ent =>
             {
                 State = DoorState.Open;
@@ -304,7 +304,7 @@ namespace INF3
             if (player.GetField<int>("attackeddoor") == 0)
             {
                 int hitchance = 0;
-                switch (player.GetStance())
+                switch (player.Call<string>("getstance"))
                 {
                     case "prone":
                         hitchance = 20;
@@ -328,7 +328,7 @@ namespace INF3
                     player.PrintlnBold("^1MISS");
                 }
                 player.SetField("attackeddoor", 1);
-                BaseScript.AfterDelay(1000, () => player.SetField("attackeddoor", 0));
+                player.AfterDelay(1000, (e) => player.SetField("attackeddoor", 0));
             }
         }
     }
@@ -346,15 +346,15 @@ namespace INF3
             for (int i = 0; i < size; i++)
             {
                 Entity ent1 = MapEdit.SpawnCrate(close + new Vector3(0f, 30f, 0f) * ((float)num), new Vector3(0f, 0f, 0f));
-                ent1.SetModel( "com_plasticcase_enemy");
-                ent1.EnableLinkTo();
-                ent1.LinkTo( Entity);
+                ent1.Call("setmodel", "com_plasticcase_enemy");
+                ent1.Call("enablelinkto");
+                ent1.Call("linkto", Entity);
                 for (int j = 1; j < height; j++)
                 {
                     Entity ent2 = MapEdit.SpawnCrate((close + new Vector3(0f, 30f, 0f) * ((float)num)) - (new Vector3(70f, 0f, 0f) * j), new Vector3(0f, 0f, 0f));
-                    ent2.SetModel( "com_plasticcase_enemy");
-                    ent2.EnableLinkTo();
-                    ent2.LinkTo( Entity);
+                    ent2.Call("setmodel", "com_plasticcase_enemy");
+                    ent2.Call("enablelinkto");
+                    ent2.Call("linkto", Entity);
                 }
                 num++;
             }
@@ -400,7 +400,7 @@ namespace INF3
         public void Open()
         {
             Entity.PlaySound(Sound.DoorSound);
-            Entity.MoveTo( OpenOrigin, 1);
+            Entity.Call("moveto", OpenOrigin, 1);
             IsClose = false;
         }
     }
@@ -443,22 +443,22 @@ namespace INF3
             var start = Origin;
             IsUsing = true;
 
-            Entity.CloneBrushModelToScriptModel( MapEdit._nullCollision);
-            player.PlayerLinkTo( Entity);
-            Entity.MoveTo( Exit, MoveTime);
+            Entity.Call("clonebrushmodeltoscriptmodel", MapEdit._nullCollision);
+            player.Call("playerlinkto", Entity);
+            Entity.Call("moveto", Exit, MoveTime);
             AfterDelay(MoveTime * 1000, e =>
             {
-                if (player.IsLinked())
+                if (player.Call<int>("islinked") != 0)
                 {
-                    player.Unlink();
-                    player.SetOrigin( Exit);
+                    player.Call("unlink");
+                    player.Call("setorigin", Exit);
                 }
-                Entity.MoveTo( start, 1);
+                Entity.Call("moveto", start, 1);
             });
             AfterDelay(MoveTime * 1000 + 2000, e =>
             {
                 IsUsing = false;
-                Entity.CloneBrushModelToScriptModel( MapEdit._airdropCollision);
+                Entity.Call("clonebrushmodeltoscriptmodel", MapEdit._airdropCollision);
             });
         }
     }
@@ -526,22 +526,22 @@ namespace INF3
             player.SetField("usingteleport", 1);
             Vector3 start = player.Origin;
             player.ShellShock("frag_grenade_mp", 3);
-            BaseScript.AfterDelay(2000, () =>
+            player.AfterDelay(2000, e =>
             {
-                player.ShellShock("concussion_grenade_mp", 3);
-                player.SetOrigin( Exit);
+                player.Call("shellshock", "concussion_grenade_mp", 3);
+                player.Call("setorigin", Exit);
                 player.PlayLocalSound(Sound.TeleporterMusic);
             });
-            BaseScript.AfterDelay(32000, () =>
+            player.AfterDelay(32000, e =>
             {
                 if (player.GetTeam() == "allies")
                 {
-                    if (player.IsLinked())
+                    if (player.Call<int>("islinked") != 0)
                     {
-                        player.Unlink();
+                        player.Call("unlink");
                     }
                     player.ShellShock("concussion_grenade_mp", 3);
-                    player.SetOrigin( start);
+                    player.Call("setorigin", start);
                     player.SetField("usingteleport", 0);
                 }
             });
@@ -568,7 +568,7 @@ namespace INF3
             {
                 foreach (var player in Utility.Players)
                 {
-                    if (player.IsAlive && Origin.DistanceTo(player.Origin) <= Range && player.IsOnGround())
+                    if (player.IsAlive && Origin.DistanceTo(player.Origin) <= Range && player.Call<int>("IsOnGround") == 1)
                     {
                         DoJump(player);
                     }
@@ -581,8 +581,8 @@ namespace INF3
         public void DoJump(Entity player)
         {
             if (!player.IsAlive) return;
-            var vel = player.GetVelocity();
-            player.SetVelocity( new Vector3(vel.X, vel.Y, Height));
+            var vel = player.Call<Vector3>("getvelocity");
+            player.Call("setvelocity", new Vector3(vel.X, vel.Y, Height));
         }
     }
 
@@ -642,8 +642,8 @@ namespace INF3
             Vector3 origin2 = Origin;
             origin2.Z += 1000f;
 
-            Entity.CloneBrushModelToScriptModel( MapEdit._nullCollision);
-            Entity.MoveTo( origin2, 2.3f);
+            Entity.Call("clonebrushmodeltoscriptmodel", MapEdit._nullCollision);
+            Entity.Call("moveto", origin2, 2.3f);
             AfterDelay(2300, e =>
             {
                 Effects.PlayFx(Effects.empfx, origin2);
@@ -717,12 +717,12 @@ namespace INF3
 
         public static void MaxAmmo(Entity player)
         {
-            player.GiveMaxAmmo( Sharpshooter._firstWeapon.Code);
-            player.GiveMaxAmmo( Sharpshooter._secondeWeapon.Code);
+            player.Call("givemaxammo", Sharpshooter._firstWeapon.Code);
+            player.Call("givemaxammo", Sharpshooter._secondeWeapon.Code);
 
             if (player.GetField<int>("perk_mulekick") == 1)
             {
-                player.GiveMaxAmmo( Sharpshooter._mulekickWeapon.Code);
+                player.Call("givemaxammo", Sharpshooter._mulekickWeapon.Code);
             }
 
             if (!player.HasWeapon("trophy_mp"))
@@ -733,10 +733,10 @@ namespace INF3
             {
                 player.GiveWeapon("frag_grenade_mp");
             }
-            player.SetWeaponAmmoClip( "trophy_mp", 99);
-            player.SetWeaponAmmoClip( "flag_grenade_mp", 99);
-            player.GiveMaxAmmo( "trophy_mp");
-            player.GiveMaxAmmo( "flag_grenade_mp");
+            player.Call("setweaponammoclip", "trophy_mp", 99);
+            player.Call("setweaponammoclip", "flag_grenade_mp", 99);
+            player.Call("givemaxammo", "trophy_mp");
+            player.Call("givemaxammo", "flag_grenade_mp");
         }
     }
 
@@ -798,34 +798,34 @@ namespace INF3
         private void Gamble(Entity player)
         {
             IsUsing = true;
-            Laptop.MoveTo( Laptop.Origin + new Vector3(0, 0, 30), 2);
-            BaseScript.AfterDelay(8000, () =>
+            Laptop.Call("moveto", Laptop.Origin + new Vector3(0, 0, 30), 2);
+            Laptop.AfterDelay(8000, e =>
             {
-                Laptop.MoveTo( Laptop.Origin - new Vector3(0, 0, 30), 2);
+                Laptop.Call("moveto", Laptop.Origin - new Vector3(0, 0, 30), 2);
             });
-            BaseScript.AfterDelay(10000, () => IsUsing = false);
+            player.AfterDelay(10000, ex => IsUsing = false);
             player.SetField("isgambling", 1);
 
             player.PrintlnBold("^2Your result will show in 10 seconds");
-            BaseScript.AfterDelay(1000, () => player.PrintlnBold("^29"));
-            BaseScript.AfterDelay(1000, () => player.PlayLocalSound("ui_mp_nukebomb_timer"));
-            BaseScript.AfterDelay(2000, () => player.PrintlnBold("^28"));
-            BaseScript.AfterDelay(2000, () => player.PlayLocalSound("ui_mp_nukebomb_timer"));
-            BaseScript.AfterDelay(3000, () => player.PrintlnBold("^27"));
-            BaseScript.AfterDelay(3000, () => player.PlayLocalSound("ui_mp_nukebomb_timer"));
-            BaseScript.AfterDelay(4000, () => player.PrintlnBold("^26"));
-            BaseScript.AfterDelay(4000, () => player.PlayLocalSound("ui_mp_nukebomb_timer"));
-            BaseScript.AfterDelay(5000, () => player.PrintlnBold("^25"));
-            BaseScript.AfterDelay(5000, () => player.PlayLocalSound("ui_mp_nukebomb_timer"));
-            BaseScript.AfterDelay(6000, () => player.PrintlnBold("^24"));
-            BaseScript.AfterDelay(6000, () => player.PlayLocalSound("ui_mp_nukebomb_timer"));
-            BaseScript.AfterDelay(7000, () => player.PrintlnBold("^23"));
-            BaseScript.AfterDelay(7000, () => player.PlayLocalSound("ui_mp_nukebomb_timer"));
-            BaseScript.AfterDelay(8000, () => player.PrintlnBold("^22"));
-            BaseScript.AfterDelay(8000, () => player.PlayLocalSound("ui_mp_nukebomb_timer"));
-            BaseScript.AfterDelay(9000, () => player.PrintlnBold("^21"));
-            BaseScript.AfterDelay(9000, () => player.PlayLocalSound("ui_mp_nukebomb_timer"));
-            BaseScript.AfterDelay(10000, () => GambleThink(player));
+            player.AfterDelay(1000, e => player.PrintlnBold("^29"));
+            player.AfterDelay(1000, e => player.PlayLocalSound("ui_mp_nukebomb_timer"));
+            player.AfterDelay(2000, e => player.PrintlnBold("^28"));
+            player.AfterDelay(2000, e => player.PlayLocalSound("ui_mp_nukebomb_timer"));
+            player.AfterDelay(3000, e => player.PrintlnBold("^27"));
+            player.AfterDelay(3000, e => player.PlayLocalSound("ui_mp_nukebomb_timer"));
+            player.AfterDelay(4000, e => player.PrintlnBold("^26"));
+            player.AfterDelay(4000, e => player.PlayLocalSound("ui_mp_nukebomb_timer"));
+            player.AfterDelay(5000, e => player.PrintlnBold("^25"));
+            player.AfterDelay(5000, e => player.PlayLocalSound("ui_mp_nukebomb_timer"));
+            player.AfterDelay(6000, e => player.PrintlnBold("^24"));
+            player.AfterDelay(6000, e => player.PlayLocalSound("ui_mp_nukebomb_timer"));
+            player.AfterDelay(7000, e => player.PrintlnBold("^23"));
+            player.AfterDelay(7000, e => player.PlayLocalSound("ui_mp_nukebomb_timer"));
+            player.AfterDelay(8000, e => player.PrintlnBold("^22"));
+            player.AfterDelay(8000, e => player.PlayLocalSound("ui_mp_nukebomb_timer"));
+            player.AfterDelay(9000, e => player.PrintlnBold("^21"));
+            player.AfterDelay(9000, e => player.PlayLocalSound("ui_mp_nukebomb_timer"));
+            player.AfterDelay(10000, e => GambleThink(player));
         }
 
         private void GambleThink(Entity player)
@@ -856,12 +856,12 @@ namespace INF3
                     break;
                 case 4:
                     PrintGambleInfo(player, "You lose $500.", GambleType.Bad);
-                    player.Notify("money", player.GetTagOrigin( "j_spine4"));
+                    player.Notify("money", player.Call<Vector3>("gettagorigin", "j_spine4"));
                     player.PayCash(500);
                     break;
                 case 5:
                     PrintGambleInfo(player, "You lose all cash.", GambleType.Bad);
-                    player.Notify("money", player.GetTagOrigin( "j_spine4"));
+                    player.Notify("money", player.Call<Vector3>("gettagorigin", "j_spine4"));
                     player.ClearCash();
                     break;
                 case 6:
@@ -889,17 +889,17 @@ namespace INF3
                     break;
                 case 10:
                     PrintGambleInfo(player, "You live or die in 5 second.", GambleType.Bad);
-                    BaseScript.AfterDelay(1000, () => player.PrintlnBold("^15"));
-                    BaseScript.AfterDelay(1000, () => player.PlayLocalSound("ui_mp_nukebomb_timer"));
-                    BaseScript.AfterDelay(2000, () => player.PrintlnBold("^14"));
-                    BaseScript.AfterDelay(2000, () => player.PlayLocalSound("ui_mp_nukebomb_timer"));
-                    BaseScript.AfterDelay(3000, () => player.PrintlnBold("^13"));
-                    BaseScript.AfterDelay(3000, () => player.PlayLocalSound("ui_mp_nukebomb_timer"));
-                    BaseScript.AfterDelay(4000, () => player.PrintlnBold("^12"));
-                    BaseScript.AfterDelay(4000, () => player.PlayLocalSound("ui_mp_nukebomb_timer"));
-                    BaseScript.AfterDelay(5000, () => player.PrintlnBold("^11"));
-                    BaseScript.AfterDelay(5000, () => player.PlayLocalSound("ui_mp_nukebomb_timer"));
-                    BaseScript.AfterDelay(6000, () =>
+                    player.AfterDelay(1000, ex => player.PrintlnBold("^15"));
+                    player.AfterDelay(1000, ex => player.PlayLocalSound("ui_mp_nukebomb_timer"));
+                    player.AfterDelay(2000, ex => player.PrintlnBold("^14"));
+                    player.AfterDelay(2000, ex => player.PlayLocalSound("ui_mp_nukebomb_timer"));
+                    player.AfterDelay(3000, ex => player.PrintlnBold("^13"));
+                    player.AfterDelay(3000, ex => player.PlayLocalSound("ui_mp_nukebomb_timer"));
+                    player.AfterDelay(4000, ex => player.PrintlnBold("^12"));
+                    player.AfterDelay(4000, ex => player.PlayLocalSound("ui_mp_nukebomb_timer"));
+                    player.AfterDelay(5000, ex => player.PrintlnBold("^11"));
+                    player.AfterDelay(5000, ex => player.PlayLocalSound("ui_mp_nukebomb_timer"));
+                    player.AfterDelay(6000, ex =>
                     {
                         switch (Utility.Random.Next(2))
                         {
@@ -940,7 +940,7 @@ namespace INF3
                         if (item.GetTeam() == "allies" && item.IsAlive && item != player)
                         {
                             item.GamblerText("Player " + player.Name + " robbed you all cash.", new Vector3(1, 1, 1), new Vector3(1, 0, 0), 1, 0.85f);
-                            item.Notify("money", item.GetTagOrigin( "j_spine4"));
+                            item.Notify("money", item.Call<Vector3>("gettagorigin", "j_spine4"));
                             cash += item.GetCash();
                             item.ClearCash();
                         }
@@ -974,7 +974,7 @@ namespace INF3
                     break;
                 case 17:
                     PrintGambleInfo(player, "You win riotshield in your back.", GambleType.Good);
-                    player.AttachShieldModel( "weapon_riot_shield_mp", "tag_shield_back");
+                    player.Call("attachshieldmodel", "weapon_riot_shield_mp", "tag_shield_back");
                     break;
                 case 18:
                     player.Notify("double_points");
@@ -1004,19 +1004,19 @@ namespace INF3
                                 item.GamblerText("You die or " + player.Name + " die after 5 second.", new Vector3(0, 0, 0), new Vector3(1, 1, 1), 1, 0);
                             }
 
-                            BaseScript.AfterDelay(1000, () => item.PrintlnBold("^05"));
-                            BaseScript.AfterDelay(1000, () => item.PlayLocalSound("ui_mp_nukebomb_timer"));
-                            BaseScript.AfterDelay(2000, () => item.PrintlnBold("^04"));
-                            BaseScript.AfterDelay(2000, () => item.PlayLocalSound("ui_mp_nukebomb_timer"));
-                            BaseScript.AfterDelay(3000, () => item.PrintlnBold("^03"));
-                            BaseScript.AfterDelay(3000, () => item.PlayLocalSound("ui_mp_nukebomb_timer"));
-                            BaseScript.AfterDelay(4000, () => item.PrintlnBold("^02"));
-                            BaseScript.AfterDelay(4000, () => item.PlayLocalSound("ui_mp_nukebomb_timer"));
-                            BaseScript.AfterDelay(5000, () => item.PrintlnBold("^01"));
-                            BaseScript.AfterDelay(5000, () => item.PlayLocalSound("ui_mp_nukebomb_timer"));
+                            item.AfterDelay(1000, ex => item.PrintlnBold("^05"));
+                            item.AfterDelay(1000, ex => item.PlayLocalSound("ui_mp_nukebomb_timer"));
+                            item.AfterDelay(2000, ex => item.PrintlnBold("^04"));
+                            item.AfterDelay(2000, ex => item.PlayLocalSound("ui_mp_nukebomb_timer"));
+                            item.AfterDelay(3000, ex => item.PrintlnBold("^03"));
+                            item.AfterDelay(3000, ex => item.PlayLocalSound("ui_mp_nukebomb_timer"));
+                            item.AfterDelay(4000, ex => item.PrintlnBold("^02"));
+                            item.AfterDelay(4000, ex => item.PlayLocalSound("ui_mp_nukebomb_timer"));
+                            item.AfterDelay(5000, ex => item.PrintlnBold("^01"));
+                            item.AfterDelay(5000, ex => item.PlayLocalSound("ui_mp_nukebomb_timer"));
                         }
                     }
-                    BaseScript.AfterDelay(6000, () =>
+                    player.AfterDelay(6000, ex =>
                     {
                         switch (Utility.Random.Next(3))
                         {
@@ -1054,7 +1054,7 @@ namespace INF3
                     PrintGambleInfo(player, "Death Machine.", GambleType.Good);
                     player.TakeAllWeapons();
                     player.GiveMaxAmmoWeapon("iw5_m60jugg_mp_eotechlmg_rof_camo08");
-                    BaseScript.AfterDelay(300, () => player.SwitchToWeaponImmediate("iw5_m60jugg_mp_eotechlmg_rof_camo08"));
+                    player.AfterDelay(300, e => player.SwitchToWeaponImmediate("iw5_m60jugg_mp_eotechlmg_rof_camo08"));
                     break;
                 case 24:
                     PrintGambleInfo(player, "Give all humans a random Perk-a-Cola.", GambleType.Excellent);
@@ -1216,7 +1216,7 @@ namespace INF3
                             return;
                         }
                         Function.SetEntRef(-1);
-                        if (PerkCola.Type==PerkColaType.QUICK_REVIVE && GSCFunctions.GetTeamScore( "axis") < 1)
+                        if (PerkCola.Type==PerkColaType.QUICK_REVIVE && Function.Call<int>("getteamscore", "axis") < 1)
                         {
                             return;
                         }
@@ -1303,25 +1303,25 @@ namespace INF3
             player.SetField("isgambling", 1);
 
             player.PrintlnBold("^2Your result will show in 10 seconds");
-            BaseScript.AfterDelay(1000, () => player.PrintlnBold("^29"));
-            BaseScript.AfterDelay(1000, () => player.PlayLocalSound("ui_mp_nukebomb_timer"));
-            BaseScript.AfterDelay(2000, () => player.PrintlnBold("^28"));
-            BaseScript.AfterDelay(2000, () => player.PlayLocalSound("ui_mp_nukebomb_timer"));
-            BaseScript.AfterDelay(3000, () => player.PrintlnBold("^27"));
-            BaseScript.AfterDelay(3000, () => player.PlayLocalSound("ui_mp_nukebomb_timer"));
-            BaseScript.AfterDelay(4000, () => player.PrintlnBold("^26"));
-            BaseScript.AfterDelay(4000, () => player.PlayLocalSound("ui_mp_nukebomb_timer"));
-            BaseScript.AfterDelay(5000, () => player.PrintlnBold("^25"));
-            BaseScript.AfterDelay(5000, () => player.PlayLocalSound("ui_mp_nukebomb_timer"));
-            BaseScript.AfterDelay(6000, () => player.PrintlnBold("^24"));
-            BaseScript.AfterDelay(6000, () => player.PlayLocalSound("ui_mp_nukebomb_timer"));
-            BaseScript.AfterDelay(7000, () => player.PrintlnBold("^23"));
-            BaseScript.AfterDelay(7000, () => player.PlayLocalSound("ui_mp_nukebomb_timer"));
-            BaseScript.AfterDelay(8000, () => player.PrintlnBold("^22"));
-            BaseScript.AfterDelay(8000, () => player.PlayLocalSound("ui_mp_nukebomb_timer"));
-            BaseScript.AfterDelay(9000, () => player.PrintlnBold("^21"));
-            BaseScript.AfterDelay(9000, () => player.PlayLocalSound("ui_mp_nukebomb_timer"));
-            BaseScript.AfterDelay(10000, () => GambleThink(player));
+            player.AfterDelay(1000, e => player.PrintlnBold("^29"));
+            player.AfterDelay(1000, e => player.PlayLocalSound("ui_mp_nukebomb_timer"));
+            player.AfterDelay(2000, e => player.PrintlnBold("^28"));
+            player.AfterDelay(2000, e => player.PlayLocalSound("ui_mp_nukebomb_timer"));
+            player.AfterDelay(3000, e => player.PrintlnBold("^27"));
+            player.AfterDelay(3000, e => player.PlayLocalSound("ui_mp_nukebomb_timer"));
+            player.AfterDelay(4000, e => player.PrintlnBold("^26"));
+            player.AfterDelay(4000, e => player.PlayLocalSound("ui_mp_nukebomb_timer"));
+            player.AfterDelay(5000, e => player.PrintlnBold("^25"));
+            player.AfterDelay(5000, e => player.PlayLocalSound("ui_mp_nukebomb_timer"));
+            player.AfterDelay(6000, e => player.PrintlnBold("^24"));
+            player.AfterDelay(6000, e => player.PlayLocalSound("ui_mp_nukebomb_timer"));
+            player.AfterDelay(7000, e => player.PrintlnBold("^23"));
+            player.AfterDelay(7000, e => player.PlayLocalSound("ui_mp_nukebomb_timer"));
+            player.AfterDelay(8000, e => player.PrintlnBold("^22"));
+            player.AfterDelay(8000, e => player.PlayLocalSound("ui_mp_nukebomb_timer"));
+            player.AfterDelay(9000, e => player.PrintlnBold("^21"));
+            player.AfterDelay(9000, e => player.PlayLocalSound("ui_mp_nukebomb_timer"));
+            player.AfterDelay(10000, e => GambleThink(player));
         }
 
         private void GambleThink(Entity player)
@@ -1349,8 +1349,8 @@ namespace INF3
             Vector3 origin2 = Origin;
             origin2.Z += 500f;
 
-            Entity.CloneBrushModelToScriptModel( MapEdit._nullCollision);
-            Entity.MoveTo( origin2, 1.5f);
+            Entity.Call("clonebrushmodeltoscriptmodel", MapEdit._nullCollision);
+            Entity.Call("moveto", origin2, 1.5f);
 
             AfterDelay(1500, e =>
             {

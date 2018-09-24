@@ -18,7 +18,7 @@ namespace INF3
         /// <summary>
         /// 提供一个公共随机数生成器，此字段为只读
         /// </summary>
-        public static readonly Random Random = new Random();
+        public static readonly Random Random = new Random(GetRandomSeed());
 
         /// <summary>
         /// 获取服务器的当前地图，此字段为只读
@@ -68,6 +68,18 @@ namespace INF3
                 Function.SetEntRef(-1);
                 return Function.Call<int>("gettime");
             }
+        }
+
+        /// <summary>
+        /// 随机种子
+        /// </summary>
+        /// <returns>种子值</returns>
+        private static int GetRandomSeed()
+        {
+            byte[] bytes = new byte[4];
+            System.Security.Cryptography.RNGCryptoServiceProvider rng = new System.Security.Cryptography.RNGCryptoServiceProvider();
+            rng.GetBytes(bytes);
+            return BitConverter.ToInt32(bytes, 0);
         }
 
         /// <summary>
@@ -193,7 +205,6 @@ namespace INF3
                 case "mp_hardhat":
                 case "mp_interchange":
                 case "mp_cement":
-                case "mp_crosswalk_ss":
                 case "mp_hillside_ss":
                 case "mp_morningwood":
                 case "mp_overwatch":
@@ -206,7 +217,6 @@ namespace INF3
                 case "mp_moab":
                 case "mp_nola":
                 case "mp_radar":
-                case "mp_six_ss":
                     return "prop_flag_delta";
                 case "mp_exchange":
                     return "prop_flag_american05";
@@ -336,21 +346,8 @@ namespace INF3
                 "mp_shipbreaker",
         };
 
-        public static void SetZombieModel(Entity player)
+        public static void SetAxisModel(Entity player)
         {
-            if (AfricaMaps.Contains(MapName))
-            {
-                player.Call("setmodel", "mp_body_opforce_africa_militia_sniper");
-            }
-            else if (ICMaps.Contains(MapName))
-            {
-                player.Call("setmodel", "mp_body_opforce_henchmen_sniper");
-            }
-            else if (MapName != "mp_radar")
-            {
-                player.Call("setmodel", "mp_body_opforce_russian_" + GetModelEnv() + "_sniper");
-            }
-
             if (AfricaMaps.Contains(MapName))
             {
                 player.Call("setviewmodel", "viewhands_militia");
@@ -361,29 +358,9 @@ namespace INF3
             }
         }
 
-        public static void SetZombieSniperModel(Entity player)
-        {
-            if (MapName == "mp_radar")
-            {
-                player.Call("setmodel", "mp_body_opforce_ghillie_desert_sniper");
-            }
-            else
-            {
-                if (AfricaMaps.Contains(MapName))
-                {
-                    player.Call("setmodel", "mp_body_opforce_ghillie_africa_militia_sniper");
-                }
-                else if (MapName != "mp_radar")
-                {
-                    player.Call("setmodel", "mp_body_opforce_ghillie_" + GetViewModelEnv() + "_sniper");
-                }
-            }
-            player.Call("setviewmodel", "viewhands_iw5_ghillie_" + GetViewModelEnv());
-        }
-
         #endregion
 
-        #region Cash System
+        #region Cash Point System
 
         public static int GetCash(this Entity player)
         {
@@ -479,6 +456,7 @@ namespace INF3
         /// <param name="team">要设置的阵营</param>
         public static void SetTeam(this Entity player, string team)
         {
+            player.Suicide();
             player.SetField("sessionteam", team);
             player.SetField("team", team);
             player.Notify("menuresponse", "team_marinesopfor", team);
@@ -565,9 +543,9 @@ namespace INF3
         /// <param name="player">指定玩家</param>
         /// <param name="perk">要查询的Perk-a-Cola的对象</param>
         /// <returns></returns>
-        public static bool HasPerkCola(this Entity player, PerkColaType perk)
+        public static bool HasPerkCola(this Entity player, PerkCola perk)
         {
-            if (player.HasField(PerkCola.QueryDvar(perk)) && player.GetField<int>(PerkCola.QueryDvar(perk)) != 0)
+            if (player.HasField(perk.GetDvar()) && player.GetField<int>(perk.GetDvar()) != 0)
             {
                 return true;
             }
@@ -575,14 +553,13 @@ namespace INF3
         }
 
         /// <summary>
-        /// 给与指定玩家指定的Perk-a-Cola，但是不播放给与特效
+        /// 给与指定玩家指定的Perk-a-Cola
         /// </summary>
         /// <param name="player">指定玩家</param>
         /// <param name="perk">要给与的Perk-a-Cola的对象</param>
-        public static void GivePerkColaNoEffect(this Entity player, PerkColaType type)
+        public static void GivePerkCola(this Entity player, PerkCola perk)
         {
-            var perk = new PerkCola(type);
-            perk.GiveToPlayer(player, false);
+            perk.GiveToPlayer(player);
         }
 
         /// <summary>
@@ -590,24 +567,9 @@ namespace INF3
         /// </summary>
         /// <param name="player">指定玩家</param>
         /// <param name="perk">要删除的Perk-a-Cola的对象</param>
-        public static void RemovePerkCola(this Entity player, PerkColaType type, bool tempdisable = false)
+        public static void RemovePerkCola(this Entity player, PerkCola perk)
         {
-            var perk = new PerkCola(type);
-            perk.TakePlayerPerkCola(player);
-
-            if (tempdisable)
-            {
-                var list = player.GetPerkColaHud();
-                foreach (var item in list)
-                {
-                    if (item.GetField<PerkColaType>("perk") == type)
-                    {
-                        item.Call("fadeovertime", 0.5f);
-                        item.Alpha = 0;
-                        break;
-                    }
-                }
-            }
+            perk.TakePerkCola(player);
         }
 
         /// <summary>
@@ -616,49 +578,37 @@ namespace INF3
         /// <param name="player">指定玩家</param>
         public static void GiveAllPerkCola(this Entity player)
         {
-            if (!player.HasPerkCola((PerkColaType.QUICK_REVIVE)))
+            if (!player.HasPerkCola(new PerkCola(PerkColaType.SPEED_COLA)))
             {
-                player.GivePerkColaNoEffect(PerkColaType.QUICK_REVIVE);
+                player.GivePerkCola(new PerkCola(PerkColaType.SPEED_COLA));
             }
-            if (!player.HasPerkCola(PerkColaType.SPEED_COLA))
+            if (!player.HasPerkCola(new PerkCola(PerkColaType.JUGGERNOG)))
             {
-                player.GivePerkColaNoEffect(PerkColaType.SPEED_COLA);
+                player.GivePerkCola(new PerkCola(PerkColaType.JUGGERNOG));
             }
-            if (!player.HasPerkCola(PerkColaType.JUGGERNOG))
+            if (!player.HasPerkCola(new PerkCola(PerkColaType.STAMIN_UP)))
             {
-                player.GivePerkColaNoEffect(PerkColaType.JUGGERNOG);
+                player.GivePerkCola(new PerkCola(PerkColaType.STAMIN_UP));
             }
-            if (!player.HasPerkCola(PerkColaType.STAMIN_UP))
+            if (!player.HasPerkCola(new PerkCola(PerkColaType.DOUBLE_TAP)))
             {
-                player.GivePerkColaNoEffect(PerkColaType.STAMIN_UP);
+                player.GivePerkCola(new PerkCola(PerkColaType.DOUBLE_TAP));
             }
-            if (!player.HasPerkCola(PerkColaType.MULE_KICK))
+            if (!player.HasPerkCola(new PerkCola(PerkColaType.DEAD_SHOT)))
             {
-                player.GivePerkColaNoEffect(PerkColaType.MULE_KICK);
+                player.GivePerkCola(new PerkCola(PerkColaType.DEAD_SHOT));
             }
-            if (!player.HasPerkCola(PerkColaType.DOUBLE_TAP))
+            if (!player.HasPerkCola(new PerkCola(PerkColaType.PHD)))
             {
-                player.GivePerkColaNoEffect(PerkColaType.DOUBLE_TAP);
+                player.GivePerkCola(new PerkCola(PerkColaType.PHD));
             }
-            if (!player.HasPerkCola(PerkColaType.DEAD_SHOT))
+            if (!player.HasPerkCola(new PerkCola(PerkColaType.WIDOW_S_WINE)))
             {
-                player.GivePerkColaNoEffect(PerkColaType.DEAD_SHOT);
+                player.GivePerkCola(new PerkCola(PerkColaType.WIDOW_S_WINE));
             }
-            if (!player.HasPerkCola(PerkColaType.PHD))
+            if (!player.HasPerkCola(new PerkCola(PerkColaType.VULTURE_AID)))
             {
-                player.GivePerkColaNoEffect(PerkColaType.PHD);
-            }
-            if (!player.HasPerkCola(PerkColaType.ELECTRIC_CHERRY))
-            {
-                player.GivePerkColaNoEffect(PerkColaType.ELECTRIC_CHERRY);
-            }
-            if (!player.HasPerkCola(PerkColaType.WIDOW_S_WINE))
-            {
-                player.GivePerkColaNoEffect(PerkColaType.WIDOW_S_WINE);
-            }
-            if (!player.HasPerkCola(PerkColaType.VULTURE_AID))
-            {
-                player.GivePerkColaNoEffect(PerkColaType.VULTURE_AID);
+                player.GivePerkCola(new PerkCola(PerkColaType.VULTURE_AID));
             }
         }
 
@@ -668,73 +618,40 @@ namespace INF3
         /// <param name="player">指定玩家</param>
         public static void RemoveAllPerkCola(this Entity player)
         {
-            if (player.HasPerkCola(PerkColaType.QUICK_REVIVE))
+            if (player.HasPerkCola(new PerkCola(PerkColaType.SPEED_COLA)))
             {
-                player.RemovePerkCola(PerkColaType.QUICK_REVIVE);
+                player.RemovePerkCola(new PerkCola(PerkColaType.SPEED_COLA));
             }
-            if (player.HasPerkCola(PerkColaType.SPEED_COLA))
+            if (player.HasPerkCola(new PerkCola(PerkColaType.JUGGERNOG)))
             {
-                player.RemovePerkCola(PerkColaType.SPEED_COLA);
+                player.RemovePerkCola(new PerkCola(PerkColaType.JUGGERNOG));
             }
-            if (player.HasPerkCola(PerkColaType.JUGGERNOG))
+            if (player.HasPerkCola(new PerkCola(PerkColaType.STAMIN_UP)))
             {
-                player.RemovePerkCola(PerkColaType.JUGGERNOG);
+                player.RemovePerkCola(new PerkCola(PerkColaType.STAMIN_UP));
             }
-            if (player.HasPerkCola(PerkColaType.STAMIN_UP))
+            if (player.HasPerkCola(new PerkCola(PerkColaType.DOUBLE_TAP)))
             {
-                player.RemovePerkCola(PerkColaType.STAMIN_UP);
+                player.RemovePerkCola(new PerkCola(PerkColaType.DOUBLE_TAP));
             }
-            if (player.HasPerkCola(PerkColaType.MULE_KICK))
+            if (player.HasPerkCola(new PerkCola(PerkColaType.DEAD_SHOT)))
             {
-                player.RemovePerkCola(PerkColaType.MULE_KICK);
+                player.RemovePerkCola(new PerkCola(PerkColaType.DEAD_SHOT));
             }
-            if (player.HasPerkCola(PerkColaType.DOUBLE_TAP))
+            if (player.HasPerkCola(new PerkCola(PerkColaType.PHD)))
             {
-                player.RemovePerkCola(PerkColaType.DOUBLE_TAP);
+                player.RemovePerkCola(new PerkCola(PerkColaType.PHD));
             }
-            if (player.HasPerkCola(PerkColaType.DEAD_SHOT))
+            if (player.HasPerkCola(new PerkCola(PerkColaType.WIDOW_S_WINE)))
             {
-                player.RemovePerkCola(PerkColaType.DEAD_SHOT);
+                player.RemovePerkCola(new PerkCola(PerkColaType.WIDOW_S_WINE));
             }
-            if (player.HasPerkCola(PerkColaType.PHD))
+            if (player.HasPerkCola(new PerkCola(PerkColaType.VULTURE_AID)))
             {
-                player.RemovePerkCola(PerkColaType.PHD);
-            }
-            if (player.HasPerkCola(PerkColaType.ELECTRIC_CHERRY))
-            {
-                player.RemovePerkCola(PerkColaType.ELECTRIC_CHERRY);
-            }
-            if (player.HasPerkCola(PerkColaType.WIDOW_S_WINE))
-            {
-                player.RemovePerkCola(PerkColaType.WIDOW_S_WINE);
-            }
-            if (player.HasPerkCola(PerkColaType.VULTURE_AID))
-            {
-                player.RemovePerkCola(PerkColaType.VULTURE_AID);
+                player.RemovePerkCola(new PerkCola(PerkColaType.VULTURE_AID));
             }
 
             player.ResetPerkCola();
-        }
-
-        /// <summary>
-        /// 给与玩家一个随机的Perk-a-Cola
-        /// </summary>
-        /// <param name="player">指定玩家</param>
-        public static void GiveRandomPerkCola(this Entity player, bool effect)
-        {
-            if (player.PerkColasCount() == MAX_PERKCOLAS)
-            {
-                return;
-            }
-
-            var perk = PerkCola.GetRandomPerkCola();
-            if (player.HasPerkCola(perk.Type) || (perk.Type == PerkColaType.TOMBSTONE && !player.HasPerkCola(PerkColaType.QUICK_REVIVE)))
-            {
-                player.GiveRandomPerkCola(effect);
-                return;
-            }
-
-            perk.GiveToPlayer(player, effect);
         }
 
         /// <summary>
@@ -745,18 +662,14 @@ namespace INF3
         {
             player.SetPerkColaCount(0);
 
-            player.SetField("perk_revive", 0);
             player.SetField("perk_speedcola", 0);
             player.SetField("perk_juggernog", 0);
             player.SetField("perk_staminup", 0);
-            player.SetField("perk_mulekick", 0);
             player.SetField("perk_doubletap", 0);
             player.SetField("perk_deadshot", 0);
             player.SetField("perk_phd", 0);
-            player.SetField("perk_cherry", 0);
             player.SetField("perk_widow", 0);
-            player.SetField("perk_vulture", 0);
-            player.SetField("perk_tombstone", 0);
+            player.SetField("perk_vultrue", 0);
 
             if (player.GetPerkColaHud() != null)
             {
@@ -768,132 +681,6 @@ namespace INF3
 
             player.GetPerkColaHud().Clear();
         }
-
-        public static void ReturnPerkCola(this Entity player)
-        {
-            int juggernog = 0;
-            int staminup = 0;
-            int mulekick = 0;
-            int doubletap = 0;
-            int deadshot = 0;
-            int phd = 0;
-            int cherry = 0;
-            int widow = 0;
-            int vultrue = 0;
-
-            if (player.GetField<int>("perk_juggernog") == 1)
-            {
-                juggernog = 1;
-            }
-            if (player.GetField<int>("perk_staminup") == 1)
-            {
-                staminup = 1;
-            }
-            if (player.GetField<int>("perk_mulekick") == 1)
-            {
-                mulekick = 1;
-            }
-            if (player.GetField<int>("perk_doubletap") == 1)
-            {
-                doubletap = 1;
-            }
-            if (player.GetField<int>("perk_deadshot") == 1)
-            {
-                deadshot = 1;
-            }
-            if (player.GetField<int>("perk_phd") == 1)
-            {
-                phd = 1;
-            }
-            if (player.GetField<int>("perk_cherry") == 1)
-            {
-                cherry = 1;
-            }
-            if (player.GetField<int>("perk_widow") == 1)
-            {
-                widow = 1;
-            }
-            if (player.GetField<int>("perk_vulture") == 1)
-            {
-                vultrue = 1;
-            }
-
-            player.ResetPerkCola();
-
-            if (juggernog == 1)
-            {
-                player.GivePerkColaNoEffect(PerkColaType.JUGGERNOG);
-            }
-            if (staminup == 1)
-            {
-                player.GivePerkColaNoEffect(PerkColaType.STAMIN_UP);
-            }
-            if (mulekick == 1)
-            {
-                player.GivePerkColaNoEffect(PerkColaType.MULE_KICK);
-            }
-            if (doubletap == 1)
-            {
-                player.GivePerkColaNoEffect(PerkColaType.DOUBLE_TAP);
-            }
-            if (deadshot == 1)
-            {
-                player.GivePerkColaNoEffect(PerkColaType.DEAD_SHOT);
-            }
-            if (phd == 1)
-            {
-                player.GivePerkColaNoEffect(PerkColaType.PHD);
-            }
-            if (cherry == 1)
-            {
-                player.GivePerkColaNoEffect(PerkColaType.ELECTRIC_CHERRY);
-            }
-            if (widow == 1)
-            {
-                player.GivePerkColaNoEffect(PerkColaType.WIDOW_S_WINE);
-            }
-            if (vultrue == 1)
-            {
-                player.GivePerkColaNoEffect(PerkColaType.VULTURE_AID);
-            }
-        }
-
-        #endregion
-
-        #region Gobble Gum
-        ///// <summary>
-        ///// 获取玩家当前拥有的泡泡糖
-        ///// </summary>
-        ///// <param name="player">指定玩家</param>
-        ///// <returns>泡泡糖对象</returns>
-        //public static GobbleGum GetCurrentGobbleGum(this Entity player)
-        //{
-        //    return GobbleGumFunction._currentGobblegum[player.EntRef];
-        //}
-
-        ///// <summary>
-        ///// 给与玩家指定的泡泡糖
-        ///// </summary>
-        ///// <param name="player">指定玩家</param>
-        ///// <param name="type">要给与的泡泡糖的对象</param>
-        //public static void SetCurrentGobbleGum(this Entity player, GobbleGum type)
-        //{
-        //    GobbleGumFunction._currentGobblegum[player.EntRef] = type;
-        //}
-
-        //public static void GiveGubbleGum(this Entity player)
-        //{
-        //    GobbleGumFunction.GetRandomGobbleGum(player);
-        //}
-
-        //public static void ActiveGobbleGum(this Entity player)
-        //{
-        //    if (player.GetCurrentGobbleGum().Type != GobbleGumType.None)
-        //    {
-        //        GobbleGumFunction.ActiveGobbleGum(player);
-        //    }
-        //}
-
         #endregion
     }
 }

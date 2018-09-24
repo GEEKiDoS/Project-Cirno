@@ -489,7 +489,7 @@ namespace INF3
                     player.TakeWeapon(player.CurrentWeapon);
                     player.GiveWeapon("riotshield_mp");
                     player.AfterDelay(300, e => player.SwitchToWeaponImmediate("riotshield_mp"));
-                    player.AttachShieldModel( "weapon_riot_shield_mp", "tag_shield_back");
+                    player.Call("attachshieldmodel", "weapon_riot_shield_mp", "tag_shield_back");
                     break;
                 case RollType.KingOfJuggernaut:
                     player.SetField("rtd_king", 1);
@@ -553,7 +553,7 @@ namespace INF3
                     player.TakeWeapon(player.CurrentWeapon);
                     player.GiveWeapon("riotshield_mp");
                     player.AfterDelay(300, e => player.SwitchToWeaponImmediate("riotshield_mp"));
-                    player.AttachShieldModel( "weapon_riot_shield_mp", "tag_shield_back");
+                    player.Call("attachshieldmodel", "weapon_riot_shield_mp", "tag_shield_back");
                     break;
                 case RollType.Boomer:
                     player.SetField("rtd_boomer", 1);
@@ -840,7 +840,7 @@ namespace INF3
             {
                 if (player.GetField<int>("rtd_tombstone") == 1)
                 {
-                    player.SetOrigin( player.GetField<Vector3>("rtd_tombstoneorigin"));
+                    player.Call("setorigin", player.GetField<Vector3>("rtd_tombstoneorigin"));
                 }
                 player.SetField("zombie_incantation", 0);
                 player.SetField("rtd_flag", 0);
@@ -873,7 +873,7 @@ namespace INF3
 
         public void RandomByDeadstreak(Entity player)
         {
-            if (this.Call<int>("getteamscore", "axis") == 1)
+            if (Call<int>("getteamscore", "axis") == 1)
             {
                 DoRandom(player, _first);
             }
@@ -959,8 +959,8 @@ namespace INF3
                     if (item.GetField<int>("perk_cherry") == 1)
                     {
                         item.Call("setblurforplayer", 6, 0.5f);
-                        item.ShellShock( "concussion_grenade_mp", 2);
-                        player.AfterDelay(2000, e =>
+                        item.Call("shellshock", "concussion_grenade_mp", 2);
+                        item.AfterDelay(2000, e =>
                         {
                             item.Call("setblurforplayer", 0, 0.3f);
                         });
@@ -968,8 +968,8 @@ namespace INF3
                     else
                     {
                         item.Call("setblurforplayer", 6, 0.5f);
-                        item.ShellShock( "concussion_grenade_mp", 5);
-                        player.AfterDelay(5000, e =>
+                        item.Call("shellshock", "concussion_grenade_mp", 5);
+                        item.AfterDelay(5000, e =>
                         {
                             item.Call("setblurforplayer", 0, 0.3f);
                         });
@@ -992,7 +992,7 @@ namespace INF3
                     if (item.GetField<float>("speed") >= 1f)
                     {
                         item.SetSpeed(0.5f);
-                        player.AfterDelay(5000, e => item.SetSpeed(1));
+                        item.AfterDelay(5000, e => item.SetSpeed(1));
                     }
                 }
             }
@@ -1091,8 +1091,8 @@ namespace INF3
         private void SpiderAcidArea(Entity player, Vector3 origin)
         {
             bool flag = true;
-            var fx = this.Call<Entity>("spawnfx", Effects.redbeaconfx, origin);
-            this.Call("triggerfx", fx);
+            var fx = Call<Entity>("spawnfx", Effects.redbeaconfx, origin);
+            Call("triggerfx", fx);
             OnInterval(100, () =>
             {
                 foreach (var item in GetClosingHumans(origin))
@@ -1116,15 +1116,15 @@ namespace INF3
         {
             if (player.HasPerkCola(PerkColaType.ELECTRIC_CHERRY))
             {
-                player.FinishPlayerDamage(player, attacker, 10, 0, "MOD_EXPLOSIVE", "bomb_site_mp", player.Origin, player.Origin, "none", 0f);
+                player.Call("finishplayerdamage", player, attacker, 10, 0, 0, "bomb_site_mp", player.Origin, "MOD_EXPLOSIVE", 0);
             }
             else
             {
-                player.FinishPlayerDamage( player, attacker, 30, 0, "MOD_EXPLOSIVE", "bomb_site_mp", player.Origin, player.Origin, "none", 0f);
+                player.Call("finishplayerdamage", player, attacker, 30, 0, 0, "bomb_site_mp", player.Origin, "MOD_EXPLOSIVE", 0);
             }
             player.Call("iprintlnbold", "^1You are into the Spider acid aera. Get out from here right now!");
             player.SetField("onhitacid", 1);
-            BaseScript.AfterDelay(1500, () => player.SetField("onhitacid", 0));
+            player.AfterDelay(1500, e => player.SetField("onhitacid", 0));
         }
 
         private void SetVision(Entity player, string vision)

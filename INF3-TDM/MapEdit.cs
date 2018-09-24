@@ -1,7 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Reflection;
+using System.Linq;
+using System.Text;
 using InfinityScript;
 
 namespace INF3
@@ -14,11 +15,8 @@ namespace INF3
         private static string _currentfile;
 
         public static bool HasPower = false;
-        //public static List<BoxEntity> boxents = new List<BoxEntity>();
-        public static List<IUsable> usables = new List<IUsable>();
+        public static List<BoxEntity> boxents = new List<BoxEntity>();
         public static List<PerkColaType> spawnedPerkColas = new List<PerkColaType>();
-        public static List<Door> doors = new List<Door>();
-
 
         public MapEdit()
         {
@@ -31,13 +29,6 @@ namespace INF3
             {
                 player.Call("notifyonplayercommand", "triggeruse", "+activate");
                 player.OnNotify("triggeruse", ent => UsableThink(ent));
-
-                //player.OnInterval(100, e =>
-                //{
-                //    TurretFireThink(player);
-                //    return true;
-                //});
-
                 UsableHud(player);
 
                 player.SetField("attackeddoor", 0);
@@ -66,34 +57,11 @@ namespace INF3
 
         private void UsableThink(Entity player)
         {
-            if (player.IsAlive)
+            foreach (var item in boxents)
             {
-                foreach (var item in usables)
+                if (player.IsAlive && item.Origin.DistanceTo(player.Origin) <= item.Range)
                 {
-                    if (item.GetType().BaseType == typeof(BoxEntity))
-                    {
-                        if (player.Origin.DistanceTo(item.Origin) < item.Range)
-                        {
-                            item.DoUsableFunc(player);
-                        }
-                    }
-                }
-            }
-        }
-
-        private void TurretFireThink(Entity player)
-        {
-            if (player.IsAlive && player.Call<int>("isusingturret") == 1)
-            {
-                foreach (var item in usables)
-                {
-                    if (item.GetType().BaseType == typeof(Turret))
-                    {
-                        if (player.Origin.DistanceTo(item.Origin) < 50 && player.Call<int>("attackbuttonpressed") == 1)
-                        {
-                            item.DoUsableFunc(player);
-                        }
-                    }
+                    item.Usable(player);
                 }
             }
         }
@@ -106,60 +74,45 @@ namespace INF3
 
             HudElem perk = HudElem.NewClientHudElem(player);
 
-            player.SetField("currentusable_entref", 0);
-
             player.OnInterval(100, e =>
             {
                 try
                 {
-                    List<IUsable> _closingusables = new List<IUsable>();
-
-                    foreach (var item in usables)
+                    bool flag = false;
+                    bool flag2 = false;
+                    foreach (var item in boxents)
                     {
                         if (player.Origin.DistanceTo(item.Origin) >= item.Range)
                         {
                             continue;
                         }
-                        else
+                        message.SetText(item.UsableText(player));
+                        if (item.Type == BoxType.PerkColaMachine)
                         {
-                            _closingusables.Add(item);
+                            var type = ((PerkColaMachine)item).PerkCola;
+                            perk.SetShader(type.GetIcon(), 15, 15);
+                            perk.X = item.Origin.X;
+                            perk.Y = item.Origin.Y;
+                            perk.Z = item.Origin.Z + 50f;
+                            perk.Call("setwaypoint", 1, 1);
+                            perk.Alpha = 0.7f;
+                            flag2 = true;
                         }
+                        flag = true;
                     }
-
-                    if (_closingusables.Count > 0)
+                    if (!flag)
                     {
-                        _closingusables.Sort();
-                        var ent = _closingusables[0];
-                        if (player.GetField<int>("currentusable_entref") != ent.EntRef || ent.GetType().BaseType == typeof(Turret))
-                        {
-                            message.SetText(ent.GetUsableText(player));
-                            if (ent.GetType() == typeof(PerkColaMachine))
-                            {
-                                var ent2 = ent as PerkColaMachine;
-                                var type = ent2.PerkCola;
-                                perk.SetShader(type.Icon, 15, 15);
-                                perk.X = ent.Origin.X;
-                                perk.Y = ent.Origin.Y;
-                                perk.Z = ent.Origin.Z + 50f;
-                                perk.Call("setwaypoint", 1, 1);
-                                perk.Alpha = 0.7f;
-                            }
-                            else
-                            {
-                                perk.Alpha = 0;
-                            }
-                            player.SetField("currentusable_entref", ent.EntRef);
-                        }
-                    }
-                    else
-                    {
-                        player.SetField("currentusable_entref", 0);
                         message.SetText("");
-                        perk.Alpha = 0;
+                    }
+                    if (!flag2)
+                    {
+                        perk.Alpha = 0f;
                     }
                 }
                 catch (Exception)
                 {
+                    message.SetText("");
+                    perk.Alpha = 0;
                 }
 
                 return player.IsPlayer;
@@ -173,7 +126,7 @@ namespace INF3
             laptop.Call("setmodel", "com_laptop_2_open");
             bool flag = true;
             laptop.OnNotify("stop_rotate", e => flag = false);
-            laptop.OnInterval(7000, e =>
+            laptop.OnInterval(100, e =>
             {
                 laptop.Call("rotateyaw", -360, 7);
                 return flag;
@@ -217,8 +170,8 @@ namespace INF3
         public void CreateHiddenTP(Vector3 enter, Vector3 exit)
         {
             Utility.Spawn("script_model", enter).Call("setmodel", "weapon_scavenger_grenadebag");
-            Utility.Spawn("script_model", exit).Call("setmodel", "weapon_oma_pack");
-            OnInterval(100, () =>
+            Utility.Spawn("script_model", enter).Call("setmodel", "weapon_oma_pack");
+            OnInterval(100, delegate
             {
                 foreach (Entity entity in Utility.Players)
                 {
@@ -349,65 +302,27 @@ namespace INF3
 
         private void SpawnBox(BoxType type, params Parameter[] args)
         {
+            BoxEntity ent;
+
             switch (type)
             {
-                case BoxType.Door:
-                    new Door(args[0].As<Vector3>(), args[1].As<Vector3>(), args[2].As<Vector3>(), args[3].As<int>(), args[4].As<int>(), args[5].As<int>(), args[6].As<int>());
-                    break;
-                case BoxType.PayDoor:
-                    new PayDoor(args[0].As<Vector3>(), args[1].As<Vector3>(), args[2].As<Vector3>(), args[3].As<int>(), args[4].As<int>(), args[5].As<int>(), args[6].As<int>());
-                    break;
-                case BoxType.Zipline:
-                    new Zipline(args[0].As<Vector3>(), args[2].As<Vector3>(), args[1].As<Vector3>(), args[3].As<int>());
-                    break;
                 case BoxType.Teleporter:
-                    new Teleporter(args[0].As<Vector3>(), args[2].As<Vector3>(), args[1].As<Vector3>());
+                    ent = new Teleporter(args[0].As<Vector3>(), args[2].As<Vector3>(), args[1].As<Vector3>());
                     break;
                 case BoxType.Trampline:
-                    new Trampoline(args[0].As<Vector3>(), args[1].As<Vector3>(), args[2].As<int>());
-                    break;
-                case BoxType.Power:
-                    new Power(args[0].As<Vector3>(), args[1].As<Vector3>());
-                    break;
-                case BoxType.Ammo:
-                    new Ammo(args[0].As<Vector3>(), args[1].As<Vector3>());
+                    ent = new Trampoline(args[0].As<Vector3>(), args[1].As<Vector3>(), args[2].As<int>());
                     break;
                 case BoxType.Gambler:
-                    new Gambler(args[0].As<Vector3>(), args[1].As<Vector3>());
-                    break;
-                case BoxType.RandomAirstrike:
-                    new RandomAirstrike(args[0].As<Vector3>(), args[1].As<Vector3>());
+                    ent = new Gambler(args[0].As<Vector3>(), args[1].As<Vector3>());
                     break;
                 case BoxType.PerkColaMachine:
-                    new PerkColaMachine(args[0].As<Vector3>(), args[1].As<Vector3>(), (PerkColaType)args[2].As<int>());
-                    break;
-                case BoxType.RandomPerkCola:
-                    new RandomPerkCola(args[0].As<Vector3>(), args[1].As<Vector3>());
+                    ent = new PerkColaMachine(args[0].As<Vector3>(), args[1].As<Vector3>(), (PerkColaType)args[2].As<int>());
                     break;
                 default:
                     throw new Exception("Unknown BoxEntity");
             }
-        }
 
-        private void SpawnTurret(TurretType type, Vector3 origin, Vector3 angle)
-        {
-            switch (type)
-            {
-                case TurretType.Turret:
-                    new OnGroundTurret(origin, angle);
-                    break;
-                case TurretType.Sentry:
-                    new Sentry(origin, angle);
-                    break;
-                case TurretType.GL:
-                    new GL(origin, angle);
-                    break;
-                case TurretType.SAM:
-                    new SAM(origin, angle);
-                    break;
-                default:
-                    throw new Exception("Unknown Turret");
-            }
+            boxents.Add(ent);
         }
 
         private void LoadMapEdit()
@@ -430,7 +345,7 @@ namespace INF3
                                     strArray = strArray[1].Split(new char[] { ';' });
                                     if (strArray.Length >= 2)
                                     {
-                                        SpawnCrate(ParseVector3(strArray[0]) + new Vector3(0, 0, 10), new Vector3(0, ParseVector3(strArray[1]).Y, 0));
+                                        SpawnCrate(ParseVector3(strArray[0]) + new Vector3(0, 0, 5), new Vector3(0, ParseVector3(strArray[1]).Y, 0));
                                     }
                                     continue;
                                 case "ramp":
@@ -452,20 +367,6 @@ namespace INF3
                                     if (strArray.Length >= 2)
                                     {
                                         CreateHiddenTP(ParseVector3(strArray[0]), ParseVector3(strArray[1]));
-                                    }
-                                    continue;
-                                case "door":
-                                    strArray = strArray[1].Split(new char[] { ';' });
-                                    if (strArray.Length >= 7)
-                                    {
-                                        SpawnBox(BoxType.Door, ParseVector3(strArray[0]), ParseVector3(strArray[1]), ParseVector3(strArray[2]), int.Parse(strArray[3]), int.Parse(strArray[4]), int.Parse(strArray[5]), int.Parse(strArray[6]));
-                                    }
-                                    continue;
-                                case "paydoor":
-                                    strArray = strArray[1].Split(new char[] { ';' });
-                                    if (strArray.Length >= 7)
-                                    {
-                                        SpawnBox(BoxType.PayDoor, ParseVector3(strArray[0]), ParseVector3(strArray[1]), ParseVector3(strArray[2]), int.Parse(strArray[3]), int.Parse(strArray[4]), int.Parse(strArray[5]), int.Parse(strArray[6]));
                                     }
                                     continue;
                                 case "wall":
@@ -496,40 +397,13 @@ namespace INF3
                                         SpawnModel(strArray[0], ParseVector3(strArray[1]), new Vector3(0, ParseVector3(strArray[2]).Y, 0));
                                     }
                                     continue;
-                                //case "turret":
-                                //    strArray = strArray[1].Split(new char[] { ';' });
-                                //    if (strArray.Length >= 2)
-                                //    {
-                                //        SpawnTurret(TurretType.Turret, ParseVector3(strArray[0]), new Vector3(0, ParseVector3(strArray[1]).Y, 0));
-                                //    }
-                                //    continue;
-                                //case "sentry":
-                                //    strArray = strArray[1].Split(new char[] { ';' });
-                                //    if (strArray.Length >= 2)
-                                //    {
-                                //        SpawnTurret(TurretType.Sentry, ParseVector3(strArray[0]), new Vector3(0, ParseVector3(strArray[1]).Y, 0));
-                                //    }
-                                //    continue;
-                                //case "gl":
-                                //    strArray = strArray[1].Split(new char[] { ';' });
-                                //    if (strArray.Length >= 2)
-                                //    {
-                                //        SpawnTurret(TurretType.GL, ParseVector3(strArray[0]), new Vector3(0, ParseVector3(strArray[1]).Y, 0));
-                                //    }
-                                //    continue;
-                                //case "sam":
-                                //    strArray = strArray[1].Split(new char[] { ';' });
-                                //    if (strArray.Length >= 2)
-                                //    {
-                                //        SpawnTurret(TurretType.SAM, ParseVector3(strArray[0]), new Vector3(0, ParseVector3(strArray[1]).Y, 0));
-                                //    }
-                                //    continue;
-                                case "zipline":
-                                    strArray = strArray[1].Split(new char[] { ';' });
-                                    if (strArray.Length >= 4)
-                                    {
-                                        SpawnBox(BoxType.Zipline, ParseVector3(strArray[0]) + new Vector3(0, 0, 10), new Vector3(0, ParseVector3(strArray[1]).Y, 0), ParseVector3(strArray[2]), Convert.ToInt32(strArray[3]));
-                                    }
+                                case "turret":
+                                    continue;
+                                case "sentry":
+                                    continue;
+                                case "gl":
+                                    continue;
+                                case "sam":
                                     continue;
                                 case "teleporter":
                                     strArray = strArray[1].Split(new char[] { ';' });
@@ -545,20 +419,6 @@ namespace INF3
                                         SpawnBox(BoxType.Trampline, ParseVector3(strArray[0]) + new Vector3(0, 0, 10), new Vector3(0, ParseVector3(strArray[1]).Y, 0), Convert.ToInt32(strArray[2]));
                                     }
                                     continue;
-                                case "power":
-                                    strArray = strArray[1].Split(new char[] { ';' });
-                                    if (strArray.Length >= 2)
-                                    {
-                                        SpawnBox(BoxType.Power, ParseVector3(strArray[0]) + new Vector3(0, 0, 10), new Vector3(0, ParseVector3(strArray[1]).Y, 0));
-                                    }
-                                    continue;
-                                case "ammo":
-                                    strArray = strArray[1].Split(new char[] { ';' });
-                                    if (strArray.Length >= 2)
-                                    {
-                                        SpawnBox(BoxType.Ammo, ParseVector3(strArray[0]) + new Vector3(0, 0, 10), new Vector3(0, ParseVector3(strArray[1]).Y, 0));
-                                    }
-                                    continue;
                                 case "gambler":
                                     strArray = strArray[1].Split(new char[] { ';' });
                                     if (strArray.Length >= 2)
@@ -566,13 +426,6 @@ namespace INF3
                                         SpawnBox(BoxType.Gambler, ParseVector3(strArray[0]) + new Vector3(0, 0, 10), new Vector3(0, ParseVector3(strArray[1]).Y, 0));
                                     }
                                     continue;
-                                //case "airstrike":
-                                //    strArray = strArray[1].Split(new char[] { ';' });
-                                //    if (strArray.Length >= 2)
-                                //    {
-                                //        SpawnBox(BoxType.RandomAirstrike, ParseVector3(strArray[0]) + new Vector3(0, 0, 10), new Vector3(0, ParseVector3(strArray[1]).Y, 0));
-                                //    }
-                                //    continue;
                                 case "perk":
                                     strArray = strArray[1].Split(new char[] { ';' });
                                     if (strArray.Length >= 3)
@@ -580,20 +433,6 @@ namespace INF3
                                         SpawnBox(BoxType.PerkColaMachine, ParseVector3(strArray[0]) + new Vector3(0, 0, 10), new Vector3(0, ParseVector3(strArray[1]).Y, 0), new Parameter((PerkColaType)Convert.ToInt32(strArray[2])));
                                     }
                                     continue;
-                                case "randomperk":
-                                    strArray = strArray[1].Split(new char[] { ';' });
-                                    if (strArray.Length >= 2)
-                                    {
-                                        SpawnBox(BoxType.RandomPerkCola, ParseVector3(strArray[0]) + new Vector3(0, 0, 10), new Vector3(0, ParseVector3(strArray[1]).Y, 0));
-                                    }
-                                    continue;
-                                    //case "gobblegum":
-                                    //    strArray = strArray[1].Split(new char[] { ';' });
-                                    //    if (strArray.Length >= 2)
-                                    //    {
-                                    //        SpawnBox(BoxType.GobbleGumMachine, ParseVector3(strArray[0]) + new Vector3(0, 0, 10), new Vector3(0, ParseVector3(strArray[1]).Y, 0));
-                                    //    }
-                                    //    continue;
                             }
                             Print("Unknown MapEdit Entry {0}... ignoring", str2);
                         }

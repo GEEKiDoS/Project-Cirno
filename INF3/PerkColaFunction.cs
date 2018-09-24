@@ -61,7 +61,7 @@ namespace INF3
                 }
                 if (attacker.GetField<int>("perk_doubletap") == 1 && mod.Contains("BULLET"))
                 {
-                    player.FinishPlayerDamage( inflictor, attacker, Convert.ToInt32(damage * 0.5), dFlags, mod, weapon, point, dir, hitLoc, 0f);
+                    player.Call("finishplayerdamage", inflictor, attacker, new Parameter(Convert.ToInt32(damage * 0.5)), dFlags, mod, weapon, point, dir, hitLoc);
                 }
                 if (attacker.GetField<int>("perk_widow") == 1 && mod.Contains("BULLET"))
                 {
@@ -73,7 +73,7 @@ namespace INF3
                     if (player.GetField<float>("speed") >= 1f)
                     {
                         player.SetSpeed(0.5f);
-                        BaseScript.AfterDelay(5000, () => player.SetSpeed(1));
+                        player.AfterDelay(5000, e => player.SetSpeed(1));
                     }
                 }
             }
@@ -96,7 +96,7 @@ namespace INF3
 
         public override void OnPlayerKilled(Entity player, Entity inflictor, Entity attacker, int damage, string mod, string weapon, Vector3 dir, string hitLoc)
         {
-            if (player.GetTeam() == "allies" && this.Call<int>("getteamscore", "allies") != 1)
+            if (player.GetTeam() == "allies" && Call<int>("getteamscore", "allies") != 1)
             {
                 if (player.HasPerkCola(PerkColaType.QUICK_REVIVE))
                 {
@@ -124,7 +124,7 @@ namespace INF3
                 if (item.GetField<float>("speed") >= 1f)
                 {
                     item.SetSpeed(0.5f);
-                    BaseScript.AfterDelay(5000, () => item.SetSpeed(1));
+                    item.AfterDelay(5000, e => item.SetSpeed(1));
                 }
             }
             AfterDelay(15000, () => player.SetField("perk_widow", 1));

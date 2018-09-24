@@ -300,7 +300,7 @@ namespace INF3
                 case PerkColaType.MULE_KICK:
                     player.SetField("perk_mulekick", 1);
                     player.GiveWeapon(Sharpshooter._mulekickWeapon.Code);
-                    player.GiveMaxAmmo( Sharpshooter._mulekickWeapon.Code);
+                    player.Call("givemaxammo", Sharpshooter._mulekickWeapon.Code);
                     break;
                 case PerkColaType.DOUBLE_TAP:
                     player.SetField("perk_doubletap", 1);
@@ -310,7 +310,6 @@ namespace INF3
                     player.OnInterval(100, e =>
                     {
                         player.Call("recoilscaleon", 0);
-
                         return player.IsPlayer && player.IsAlive && player.HasPerkCola(Type);
                     });
                     player.SetPerk("specialty_reducedsway", true, false);
